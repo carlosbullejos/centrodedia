@@ -1,13 +1,14 @@
-name: CI: Ansible Build & Push
+name: Ansible
 
 on:
   push:
     branches:
       - ansible
+  workflow_dispatch:
 
 jobs:
   build_and_push:
-    name: 🚀 Build & Push via Ansible
+    name:  Build & Push via Ansible
     runs-on: ubuntu-latest
 
     steps:
