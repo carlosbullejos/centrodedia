@@ -1,40 +1,68 @@
-name: Ansible
+---
+- name: Build & Push Docker images to ECR
+  hosts: localhost
+  connection: local
+  gather_facts: false
 
-on:
-  push:
-    branches:
-      - ansible
-  workflow_dispatch:
+  vars:
+    aws_region:   "us-east-1"
+    aws_account:  "799880597301"
+    ecr_registry: "{{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com"
+    templates_dir: "{{ playbook_dir }}/../templates"
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  tasks:
+    - name: Ensure Docker is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
 
-    steps:
-      - name:  Checkout code
-        uses: actions/checkout@v4
+    - name: Authenticate to ECR
+      ansible.builtin.shell: |
+        aws ecr get-login-password --region {{ aws_region }} \
+          | docker login --username AWS --password-stdin {{ ecr_registry }}
 
-      - name:  Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region:            ${{ secrets.AWS_REGION }}
+    - name: Build & push NGINX image
+      ansible.builtin.shell: |
+        docker build \
+          -t carlos-web \
+          -f {{ templates_dir }}/Dockerfile_nginx.j2 \
+          {{ templates_dir }}
+        docker tag carlos-web    {{ ecr_registry }}/carlos-web:latest
+        docker push {{ ecr_registry }}/carlos-web:latest
 
-      - name:  Install Ansible & AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-          pip3 install --user ansible awscli
-          # Aseguramos que los binarios de pip --user estén en el PATH
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+    - name: Build & push PHP‑FPM image
+      ansible.builtin.shell: |
+        docker build \
+          -t php-fpm \
+          -f {{ templates_dir }}/Dockerfile_php.j2 \
+          {{ templates_dir }}
+        docker tag php-fpm {{ ecr_registry }}/php-fpm:latest
+        docker push {{ ecr_registry }}/php-fpm:latest
 
-      - name:  Run Ansible playbook
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN:     ${{ secrets.AWS_SESSION_TOKEN }}
-        run: |
-          ansible-playbook ansible/tasks/main.yml -i localhost, --connection=local
+    - name: Build & push MySQL image
+      ansible.builtin.shell: |
+        docker build \
+          -t mysql-carlosbullejos \
+          -f {{ templates_dir }}/Dockerfile_mysql2.j2 \
+          {{ templates_dir }}
+        docker tag mysql-carlosbullejos {{ ecr_registry }}/mysql:latest
+        docker push {{ ecr_registry }}/mysql:latest
 
+    - name: Build & push Apache image
+      ansible.builtin.shell: |
+        docker build \
+          -t apache \
+          -f {{ templates_dir }}/Dockerfile_apache.j2 \
+          {{ templates_dir }}
+        docker tag apache {{ ecr_registry }}/apache:latest
+        docker push {{ ecr_registry }}/apache:latest
+
+    - name: Build & push FTP image
+      ansible.builtin.shell: |
+        docker build \
+          -t ftp \
+          -f {{ templates_dir }}/Dockerfile_ftp.j2 \
+          {{ templates_dir }}
+        docker tag ftp {{ ecr_registry }}/ftp:latest
+        docker push {{ ecr_registry }}/ftp:latest
