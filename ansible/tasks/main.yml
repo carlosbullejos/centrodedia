@@ -3,23 +3,14 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  
+
   vars:
-    aws_region: "us-east-1"
-    aws_account: "799880597301"
-    ecr_registry: "799880597301.dkr.ecr.us-east-1.amazonaws.com"
-    # Define aquí la raíz de tu repo para el contexto de Docker
-    project_root: "{{ playbook_dir }}/../../"
+    aws_region:   "us-east-1"
+    aws_account:  "799880597301"
+    ecr_registry: "{{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com"
+    templates_dir: "{{ playbook_dir }}/../templates"
 
   tasks:
-    - name: Dump project_root contents
-      ansible.builtin.shell: |
-        echo "Project root is {{ project_root }}"
-        ls -R {{ project_root }}
-      register: dump
-    - ansible.builtin.debug:
-        var: dump.stdout_lines
-
     - name: Ensure Docker is running
       ansible.builtin.service:
         name: docker
@@ -30,44 +21,48 @@
       ansible.builtin.shell: |
         aws ecr get-login-password --region {{ aws_region }} \
           | docker login --username AWS --password-stdin {{ ecr_registry }}
-      register: login_result
 
     - name: Build & push NGINX image
       ansible.builtin.shell: |
-        docker build -t carlos-web \
-          -f {{ playbook_dir }}/../templates/Dockerfile_nginx.j2 \
-          {{ project_root }}
+        docker build \
+          -t carlos-web \
+          -f {{ templates_dir }}/Dockerfile_nginx.j2 \
+          {{ templates_dir }}
         docker tag carlos-web    {{ ecr_registry }}/carlos-web:latest
         docker push {{ ecr_registry }}/carlos-web:latest
 
-    - name: Build & push PHP-FPM image
+    - name: Build & push PHP‑FPM image
       ansible.builtin.shell: |
-        docker build -t php-fpm \
-          -f {{ playbook_dir }}/../templates/Dockerfile_php.j2 \
-          {{ project_root }}
+        docker build \
+          -t php-fpm \
+          -f {{ templates_dir }}/Dockerfile_php.j2 \
+          {{ templates_dir }}
         docker tag php-fpm {{ ecr_registry }}/php-fpm:latest
         docker push {{ ecr_registry }}/php-fpm:latest
 
     - name: Build & push MySQL image
       ansible.builtin.shell: |
-        docker build -t mysql-carlosbullejos \
-          -f {{ playbook_dir }}/../templates/Dockerfile_mysql.j2 \
-          {{ project_root }}
+        docker build \
+          -t mysql-carlosbullejos \
+          -f {{ templates_dir }}/Dockerfile_mysql2.j2 \
+          {{ templates_dir }}
         docker tag mysql-carlosbullejos {{ ecr_registry }}/mysql:latest
         docker push {{ ecr_registry }}/mysql:latest
 
     - name: Build & push Apache image
       ansible.builtin.shell: |
-        docker build -t apache \
-          -f {{ playbook_dir }}/../templates/Dockerfile_apache.j2 \
-          {{ project_root }}
+        docker build \
+          -t apache \
+          -f {{ templates_dir }}/Dockerfile_apache.j2 \
+          {{ templates_dir }}
         docker tag apache {{ ecr_registry }}/apache:latest
         docker push {{ ecr_registry }}/apache:latest
 
     - name: Build & push FTP image
       ansible.builtin.shell: |
-        docker build -t ftp \
-          -f {{ playbook_dir }}/../templates/Dockerfile_ftp.j2 \
-          {{ project_root }}
+        docker build \
+          -t ftp \
+          -f {{ templates_dir }}/Dockerfile_ftp.j2 \
+          {{ templates_dir }}
         docker tag ftp {{ ecr_registry }}/ftp:latest
         docker push {{ ecr_registry }}/ftp:latest
