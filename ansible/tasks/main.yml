@@ -156,7 +156,7 @@
 
     - name: Push nginx image
       ansible.builtin.shell: >
-        docker push {{ ecr_registry }}/imagenes:carlos-wweb
+        docker push {{ ecr_registry }}/imagenes:carlos-web
 
     - name: Build & push PHP-FPM image
       ansible.builtin.shell: |
