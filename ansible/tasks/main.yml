@@ -1,4 +1,9 @@
 ---
+- name: Build & Push Docker images to ECR
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  
   vars:
     aws_region: "us-east-1"
     aws_account: "799880597301"
@@ -14,11 +19,6 @@
       register: dump
     - ansible.builtin.debug:
         var: dump.stdout_lines
-    
-    - name: Build & Push Docker images to ECR
-      hosts: localhost
-      connection: local
-      gather_facts: false
 
     - name: Ensure Docker is running
       ansible.builtin.service:
