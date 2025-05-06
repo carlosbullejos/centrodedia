@@ -39,5 +39,5 @@ jobs:
           ansible-playbook \
             -i localhost, \
             --connection=local \
-            tasks/main.yaml
+            ansible/tasks/main.yaml
 
