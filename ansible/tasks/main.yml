@@ -170,11 +170,6 @@
         && docker tag mysql-carlosbullejos {{ ecr_registry }}/imagenes:mysql \
         && docker push {{ ecr_registry }}/imagenes:mysql
 
-    - name: Build & push Apache image
-      ansible.builtin.shell: |
-        docker build -t apache {{ build_root }}/apache \
-        && docker tag apache {{ ecr_registry }}/imagenes:apache \
-        && docker push {{ ecr_registry }}/imagenes:apache
 
     - name: Build & push FTP image
       ansible.builtin.shell: |
