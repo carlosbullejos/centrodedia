@@ -149,31 +149,31 @@
         | docker login --username AWS --password-stdin {{ ecr_registry }}
 
     - name: Build & push NGINX image
-      ansible.builtin.command: >
+      ansible.builtin.shell: |
         docker build -t carlos-web {{ build_root }}/nginx
         && docker tag carlos-web {{ ecr_registry }}/carlos-web:latest
         && docker push {{ ecr_registry }}/carlos-web:latest
 
     - name: Build & push PHP‑FPM image
-      ansible.builtin.command: >
+      ansible.builtin.shell: |
         docker build -t php-fpm {{ build_root }}/php_fpm
         && docker tag php-fpm {{ ecr_registry }}/php-fpm:latest
         && docker push {{ ecr_registry }}/php-fpm:latest
 
     - name: Build & push MySQL image
-      ansible.builtin.command: >
+      ansible.builtin.shell: |
         docker build -t mysql-carlosbullejos {{ build_root }}/mysql
         && docker tag mysql-carlosbullejos {{ ecr_registry }}/mysql:latest
         && docker push {{ ecr_registry }}/mysql:latest
 
     - name: Build & push Apache image
-      ansible.builtin.command: >
+      ansible.builtin.shell: |
         docker build -t apache {{ build_root }}/apache
         && docker tag apache {{ ecr_registry }}/apache:latest
         && docker push {{ ecr_registry }}/apache:latest
 
     - name: Build & push FTP image
-      ansible.builtin.command: >
+      ansible.builtin.shell: |
         docker build -t ftp {{ build_root }}/ftp
         && docker tag ftp {{ ecr_registry }}/ftp:latest
         && docker push {{ ecr_registry }}/ftp:latest
