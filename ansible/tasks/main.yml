@@ -5,9 +5,9 @@
   gather_facts: false
 
   vars:
-    aws_region: "{{ lookup('env','AWS_REGION') }}"
-    aws_account: "{{ lookup('env','AWS_ACCOUNT_ID') }}"
-    ecr_registry: "{{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com"
+    aws_region: "us-east-1"
+    aws_account: "799880597301"
+    ecr_registry: "799880597301.dkr.ecr.us-east-1.amazonaws.com"
 
   tasks:
     - name: Ensure Docker is running
