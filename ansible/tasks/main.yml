@@ -140,11 +140,36 @@
           | docker login --username AWS --password-stdin {{ ecr_registry }}
 
     # ─── Build & Push ───────────────────────────────────────────────────────────
-    - name: Build & push NGINX image
+     # ─── DEBUG: lista el contenido de build/nginx ────────────────────────
+    - name: DEBUG: listar contenido de build/nginx
       ansible.builtin.shell: |
-        docker build -t carlos-web {{ build_root }}/nginx \
-        && docker tag carlos-web {{ ecr_registry }}/carlos-web:latest \
-        && docker push {{ ecr_registry }}/carlos-web:latest
+        echo "=== Contenido de {{ build_root }}/nginx ==="
+        ls -R {{ build_root }}/nginx
+      register: ls_nginx
+
+    - ansible.builtin.debug:
+        var: ls_nginx.stdout_lines
+
+    # ─── 1) Construir solo la imagen ───────────────────────────────────
+    - name: Build NGINX image
+      ansible.builtin.shell: >
+        docker build -t carlos-web {{ build_root }}/nginx
+      register: nginx_build
+      failed_when: nginx_build.rc != 0
+
+    - name: Mostrar log completo del build de NGINX
+      ansible.builtin.debug:
+        var: nginx_build.stderr_lines
+
+    # ─── 2) Etiquetar ───────────────────────────────────────────────────
+    - name: Tag NGINX image
+      ansible.builtin.shell: >
+        docker tag carlos-web {{ ecr_registry }}/carlos-web:latest
+
+    # ─── 3) Push ────────────────────────────────────────────────────────
+    - name: Push NGINX image
+      ansible.builtin.shell: >
+        docker push {{ ecr_registry }}/carlos-web:latest
 
     - name: Build & push PHP‑FPM image
       ansible.builtin.shell: |
