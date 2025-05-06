@@ -19,45 +19,45 @@
     - name: Authenticate to ECR
       ansible.builtin.shell: |
         aws ecr get-login-password --region {{ aws_region }} \
-        | docker login --username AWS --password-stdin {{ ecr_registry }}
+          | docker login --username AWS --password-stdin {{ ecr_registry }}
       register: login_result
 
     - name: Build & push NGINX image
       ansible.builtin.shell: |
         docker build -t carlos-web \
-          -f {{ playbook_dir }}/templates/Dockerfile_nginx.j2 \
-          {{ playbook_dir }}/templates/
+          -f {{ playbook_dir }}/../templates/Dockerfile_nginx.j2 \
+          {{ playbook_dir }}/../templates/
         docker tag carlos-web {{ ecr_registry }}/carlos-web:latest
         docker push {{ ecr_registry }}/carlos-web:latest
 
     - name: Build & push PHP-FPM image
       ansible.builtin.shell: |
         docker build -t php-fpm \
-          -f {{ playbook_dir }}/templates/Dockerfile_php.j2 \
-          {{ playbook_dir }}/templates/
+          -f {{ playbook_dir }}/../templates/Dockerfile_php.j2 \
+          {{ playbook_dir }}/../templates/
         docker tag php-fpm {{ ecr_registry }}/php-fpm:latest
         docker push {{ ecr_registry }}/php-fpm:latest
 
     - name: Build & push MySQL image
       ansible.builtin.shell: |
         docker build -t mysql-carlosbullejos \
-          -f {{ playbook_dir }}/templates/Dockerfile_mysql.j2 \
-          {{ playbook_dir }}/templates/
+          -f {{ playbook_dir }}/../templates/Dockerfile_mysql.j2 \
+          {{ playbook_dir }}/../templates/
         docker tag mysql-carlosbullejos {{ ecr_registry }}/mysql:latest
         docker push {{ ecr_registry }}/mysql:latest
 
     - name: Build & push Apache image
       ansible.builtin.shell: |
         docker build -t apache \
-          -f {{ playbook_dir }}/templates/Dockerfile_apache.j2 \
-          {{ playbook_dir }}/templates/
+          -f {{ playbook_dir }}/../templates/Dockerfile_apache.j2 \
+          {{ playbook_dir }}/../templates/
         docker tag apache {{ ecr_registry }}/apache:latest
         docker push {{ ecr_registry }}/apache:latest
 
     - name: Build & push FTP image
       ansible.builtin.shell: |
         docker build -t ftp \
-          -f {{ playbook_dir }}/templates/Dockerfile_ftp.j2 \
-          {{ playbook_dir }}/templates/
+          -f {{ playbook_dir }}/../templates/Dockerfile_ftp.j2 \
+          {{ playbook_dir }}/../templates/
         docker tag ftp {{ ecr_registry }}/ftp:latest
         docker push {{ ecr_registry }}/ftp:latest
