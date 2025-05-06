@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🔄 Checkout code
+      - name:  Checkout code
         uses: actions/checkout@v4
 
-      - name: ⚙️ Configure AWS credentials
+      - name:  Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -22,7 +22,7 @@ jobs:
           aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region:            ${{ secrets.AWS_REGION }}
 
-      - name: 📦 Install Ansible & AWS CLI
+      - name:  Install Ansible & AWS CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip
@@ -30,7 +30,7 @@ jobs:
           # Aseguramos que los binarios de pip --user estén en el PATH
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: 🚀 Run Ansible playbook
+      - name:  Run Ansible playbook
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION:     ${{ secrets.AWS_REGION }}
