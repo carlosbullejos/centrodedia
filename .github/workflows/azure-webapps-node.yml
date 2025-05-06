@@ -1,0 +1,42 @@
+name: CI: Ansible Build & Push
+
+on:
+  push:
+    branches:
+      - ansible
+
+jobs:
+  build_and_push:
+    name: 🚀 Build & Push via Ansible
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+
+      - name: 📦 Install Ansible & AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install --user ansible awscli
+          # Aseguramos que los binarios de pip --user estén en el PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 🚀 Run Ansible playbook
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION:     ${{ secrets.AWS_REGION }}
+        run: |
+          ansible-playbook \
+            -i localhost, \
+            --connection=local \
+            tasks/main.yaml
+
