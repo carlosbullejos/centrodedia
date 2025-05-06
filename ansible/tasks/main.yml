@@ -65,7 +65,7 @@
         state: directory
         mode: "0755"
 
-    - name: Template PHP‑FPM Dockerfile
+    - name: Template PHP-FPM Dockerfile
       ansible.builtin.template:
         src: "{{ templates_dir }}/Dockerfile_php.j2"
         dest: "{{ build_root }}/php_fpm/Dockerfile"
@@ -130,7 +130,7 @@
         aws ecr get-login-password --region {{ aws_region }} \
           | docker login --username AWS --password-stdin {{ ecr_registry }}
 
-    - name: Debug: list nginx build context
+    - name: Debug list nginx build context
       ansible.builtin.shell: |
         echo "Contents of {{ build_root }}/nginx:"
         ls -R {{ build_root }}/nginx
@@ -158,7 +158,7 @@
       ansible.builtin.shell: >
         docker push {{ ecr_registry }}/carlos-web:latest
 
-    - name: Build & push PHP‑FPM image
+    - name: Build & push PHP-FPM image
       ansible.builtin.shell: |
         docker build -t php-fpm {{ build_root }}/php_fpm \
         && docker tag php-fpm {{ ecr_registry }}/php-fpm:latest \
