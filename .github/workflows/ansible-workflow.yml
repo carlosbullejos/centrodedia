@@ -33,11 +33,9 @@ jobs:
 
       - name:  Run Ansible playbook
         env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_REGION:     ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN:     ${{ secrets.AWS_SESSION_TOKEN }}
         run: |
-          ansible-playbook \
-            -i localhost, \
-            --connection=local \
-            ansible/tasks/main.yaml
+          ansible-playbook ansible/tasks/main.yml -i localhost, --conection=local
 
