@@ -8,6 +8,8 @@
     aws_region: "us-east-1"
     aws_account: "799880597301"
     ecr_registry: "799880597301.dkr.ecr.us-east-1.amazonaws.com"
+    # Define aquí la raíz de tu repo para el contexto de Docker
+    project_root: "{{ playbook_dir }}/../../"
 
   tasks:
     - name: Ensure Docker is running
@@ -26,15 +28,15 @@
       ansible.builtin.shell: |
         docker build -t carlos-web \
           -f {{ playbook_dir }}/../templates/Dockerfile_nginx.j2 \
-          {{ playbook_dir }}/../templates/
-        docker tag carlos-web {{ ecr_registry }}/carlos-web:latest
+          {{ project_root }}
+        docker tag carlos-web    {{ ecr_registry }}/carlos-web:latest
         docker push {{ ecr_registry }}/carlos-web:latest
 
     - name: Build & push PHP-FPM image
       ansible.builtin.shell: |
         docker build -t php-fpm \
           -f {{ playbook_dir }}/../templates/Dockerfile_php.j2 \
-          {{ playbook_dir }}/../templates/
+          {{ project_root }}
         docker tag php-fpm {{ ecr_registry }}/php-fpm:latest
         docker push {{ ecr_registry }}/php-fpm:latest
 
@@ -42,7 +44,7 @@
       ansible.builtin.shell: |
         docker build -t mysql-carlosbullejos \
           -f {{ playbook_dir }}/../templates/Dockerfile_mysql.j2 \
-          {{ playbook_dir }}/../templates/
+          {{ project_root }}
         docker tag mysql-carlosbullejos {{ ecr_registry }}/mysql:latest
         docker push {{ ecr_registry }}/mysql:latest
 
@@ -50,7 +52,7 @@
       ansible.builtin.shell: |
         docker build -t apache \
           -f {{ playbook_dir }}/../templates/Dockerfile_apache.j2 \
-          {{ playbook_dir }}/../templates/
+          {{ project_root }}
         docker tag apache {{ ecr_registry }}/apache:latest
         docker push {{ ecr_registry }}/apache:latest
 
@@ -58,6 +60,6 @@
       ansible.builtin.shell: |
         docker build -t ftp \
           -f {{ playbook_dir }}/../templates/Dockerfile_ftp.j2 \
-          {{ playbook_dir }}/../templates/
+          {{ project_root }}
         docker tag ftp {{ ecr_registry }}/ftp:latest
         docker push {{ ecr_registry }}/ftp:latest
