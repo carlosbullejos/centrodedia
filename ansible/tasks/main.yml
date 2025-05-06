@@ -7,18 +7,18 @@
     project_root: "{{ playbook_dir }}/../../"
 
   tasks:
-- name: Dump project_root contents
-  ansible.builtin.shell: |
-    echo "Project root is {{ project_root }}"
-    ls -R {{ project_root }}
-  register: dump
-- ansible.builtin.debug:
-    var: dump.stdout_lines
-
-- name: Build & Push Docker images to ECR
-  hosts: localhost
-  connection: local
-  gather_facts: false
+    - name: Dump project_root contents
+      ansible.builtin.shell: |
+        echo "Project root is {{ project_root }}"
+        ls -R {{ project_root }}
+      register: dump
+    - ansible.builtin.debug:
+        var: dump.stdout_lines
+    
+    - name: Build & Push Docker images to ECR
+      hosts: localhost
+      connection: local
+      gather_facts: false
 
     - name: Ensure Docker is running
       ansible.builtin.service:
