@@ -8,13 +8,11 @@
     aws_region:    "us-east-1"
     aws_account:   "799880597301"
     ecr_registry:  "{{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com"
-
-    # Rutas en tu repo
     templates_dir: "{{ playbook_dir }}/../templates"
     build_root:    "{{ playbook_dir }}/../build"
 
   tasks:
-    # ─── Preparar directorio build ─────────────────────────────────────────────
+    # ─── Preparar directorio build ────────────────────────────────────────────
     - name: Clean build directory
       ansible.builtin.file:
         path: "{{ build_root }}"
@@ -26,7 +24,7 @@
         state: directory
         mode: "0755"
 
-    # ─── Contexto NGINX ────────────────────────────────────────────────────────
+    # ─── Contexto NGINX ───────────────────────────────────────────────────────
     - name: Create nginx build context
       ansible.builtin.file:
         path: "{{ build_root }}/nginx"
@@ -63,7 +61,7 @@
         dest: "{{ build_root }}/nginx/private.key"
         mode: "0600"
 
-    # ─── Contexto PHP‑FPM ───────────────────────────────────────────────────────
+    # ─── Contexto PHP‑FPM ────────────────────────────────────────────────────
     - name: Create php_fpm build context
       ansible.builtin.file:
         path: "{{ build_root }}/php_fpm"
@@ -76,7 +74,7 @@
         dest: "{{ build_root }}/php_fpm/Dockerfile"
         mode: "0644"
 
-    # ─── Contexto MySQL ─────────────────────────────────────────────────────────
+    # ─── Contexto MySQL ───────────────────────────────────────────────────────
     - name: Create mysql build context
       ansible.builtin.file:
         path: "{{ build_root }}/mysql"
@@ -89,7 +87,7 @@
         dest: "{{ build_root }}/mysql/Dockerfile"
         mode: "0644"
 
-    # ─── Contexto APACHE ───────────────────────────────────────────────────────
+    # ─── Contexto APACHE ──────────────────────────────────────────────────────
     - name: Create apache build context
       ansible.builtin.file:
         path: "{{ build_root }}/apache"
@@ -102,7 +100,7 @@
         dest: "{{ build_root }}/apache/Dockerfile"
         mode: "0644"
 
-    # ─── Contexto FTP ───────────────────────────────────────────────────────────
+    # ─── Contexto FTP ─────────────────────────────────────────────────────────
     - name: Create ftp build context
       ansible.builtin.file:
         path: "{{ build_root }}/ftp"
@@ -122,75 +120,4 @@
         mode: "0644"
 
     - name: Copy vsftpd virtual users
-      ansible.builtin.copy:
-        src: "{{ templates_dir }}/vsftpd_virtual"
-        dest: "{{ build_root }}/ftp/vsftpd_virtual"
-        mode: "0644"
-
-    # ─── Login a ECR ────────────────────────────────────────────────────────────
-    - name: Ensure Docker is running
-      ansible.builtin.service:
-        name: docker
-        state: started
-        enabled: true
-
-    - name: Authenticate to ECR
-      ansible.builtin.shell: |
-        aws ecr get-login-password --region {{ aws_region }} \
-          | docker login --username AWS --password-stdin {{ ecr_registry }}
-
-    # ─── Build & Push ───────────────────────────────────────────────────────────
-     # ─── DEBUG: lista el contenido de build/nginx ────────────────────────
-    - name: DEBUG: listar contenido de build/nginx
-      ansible.builtin.shell: |
-        echo "=== Contenido de {{ build_root }}/nginx ==="
-        ls -R {{ build_root }}/nginx
-      register: ls_nginx
-
-    - ansible.builtin.debug:
-        var: ls_nginx.stdout_lines
-
-    # ─── 1) Construir solo la imagen ───────────────────────────────────
-    - name: Build NGINX image
-      ansible.builtin.shell: >
-        docker build -t carlos-web {{ build_root }}/nginx
-      register: nginx_build
-      failed_when: nginx_build.rc != 0
-
-    - name: Mostrar log completo del build de NGINX
-      ansible.builtin.debug:
-        var: nginx_build.stderr_lines
-
-    # ─── 2) Etiquetar ───────────────────────────────────────────────────
-    - name: Tag NGINX image
-      ansible.builtin.shell: >
-        docker tag carlos-web {{ ecr_registry }}/carlos-web:latest
-
-    # ─── 3) Push ────────────────────────────────────────────────────────
-    - name: Push NGINX image
-      ansible.builtin.shell: >
-        docker push {{ ecr_registry }}/carlos-web:latest
-
-    - name: Build & push PHP‑FPM image
-      ansible.builtin.shell: |
-        docker build -t php-fpm {{ build_root }}/php_fpm \
-        && docker tag php-fpm {{ ecr_registry }}/php-fpm:latest \
-        && docker push {{ ecr_registry }}/php-fpm:latest
-
-    - name: Build & push MySQL image
-      ansible.builtin.shell: |
-        docker build -t mysql-carlosbullejos {{ build_root }}/mysql \
-        && docker tag mysql-carlosbullejos {{ ecr_registry }}/mysql:latest \
-        && docker push {{ ecr_registry }}/mysql:latest
-
-    - name: Build & push Apache image
-      ansible.builtin.shell: |
-        docker build -t apache {{ build_root }}/apache \
-        && docker tag apache {{ ecr_registry }}/apache:latest \
-        && docker push {{ ecr_registry }}/apache:latest
-
-    - name: Build & push FTP image
-      ansible.builtin.shell: |
-        docker build -t ftp {{ build_root }}/ftp \
-        && docker tag ftp {{ ecr_registry }}/ftp:latest \
-        && docker push {{ ecr_registry }}/ftp:latest
+      ansible.b
