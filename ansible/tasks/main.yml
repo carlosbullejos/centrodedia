@@ -1,4 +1,12 @@
 ---
+  vars:
+    aws_region: "us-east-1"
+    aws_account: "799880597301"
+    ecr_registry: "799880597301.dkr.ecr.us-east-1.amazonaws.com"
+    # Define aquí la raíz de tu repo para el contexto de Docker
+    project_root: "{{ playbook_dir }}/../../"
+
+  tasks:
 - name: Dump project_root contents
   ansible.builtin.shell: |
     echo "Project root is {{ project_root }}"
@@ -12,14 +20,6 @@
   connection: local
   gather_facts: false
 
-  vars:
-    aws_region: "us-east-1"
-    aws_account: "799880597301"
-    ecr_registry: "799880597301.dkr.ecr.us-east-1.amazonaws.com"
-    # Define aquí la raíz de tu repo para el contexto de Docker
-    project_root: "{{ playbook_dir }}/../../"
-
-  tasks:
     - name: Ensure Docker is running
       ansible.builtin.service:
         name: docker
