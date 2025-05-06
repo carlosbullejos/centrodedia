@@ -1,4 +1,12 @@
 ---
+- name: Dump project_root contents
+  ansible.builtin.shell: |
+    echo "Project root is {{ project_root }}"
+    ls -R {{ project_root }}
+  register: dump
+- ansible.builtin.debug:
+    var: dump.stdout_lines
+
 - name: Build & Push Docker images to ECR
   hosts: localhost
   connection: local
