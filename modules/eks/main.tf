@@ -5,17 +5,20 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.this.token
 }
 
-data "aws_eks_cluster_auth" "this" {
-  name = aws_eks_cluster.this.name
-}
-
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
-  role_arn = var.cluster_role_arn    # Tu LabRole
+  role_arn = var.cluster_role_arn
+
   vpc_config {
-    subnet_ids         = var.subnet_ids
-    security_group_ids = [var.eks_sg_id]
+    subnet_ids             = var.subnet_ids
+    security_group_ids     = [var.eks_sg_id]
+
+    endpoint_public_access  = var.cluster_endpoint_public_access
+    endpoint_private_access = var.cluster_endpoint_private_access
+    public_access_cidrs     = var.cluster_public_access_cidrs
   }
+
+  # Sin managed add‑ons: no declaramos nada más aquí
 }
 
 resource "aws_eks_node_group" "this" {
@@ -30,7 +33,15 @@ resource "aws_eks_node_group" "this" {
     min_size     = var.node_count
   }
 
-  # Aquí le pasamos una lista con tu tipo de instancia
+  # Asegúrate de que tus nodos reciben IP pública:
+  # Esto solo está disponible si usas un launch template,
+  # de lo contrario activa “Assign public IP” en la consola.
+  remote_access {
+    ec2_ssh_key             = var.ssh_key_name
+    source_security_group_ids = [module.security.ec2_app_sg_id]
+  }
+
+  # Versión nueva del provedor usa lista:
   instance_types = [var.node_instance_type]
 }
 
