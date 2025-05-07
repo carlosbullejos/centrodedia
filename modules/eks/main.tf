@@ -28,9 +28,9 @@ resource "aws_eks_node_group" "this" {
     max_size     = var.node_count + 1
     min_size     = var.node_count
   }
-  instance_types = [var.node_instance_type]
+  instance_types = var.node_instance_type
 }
 
 
-  instance_types = [var.node_instance_type]
+  instance_types = var.node_instance_type
 }
