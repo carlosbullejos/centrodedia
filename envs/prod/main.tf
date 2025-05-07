@@ -2,8 +2,10 @@ module "network" {
   source              = "../../modules/network"
   cidr                = var.cidr
   public_subnet_cidrs = var.public_subnet_cidrs
+  azs                 = var.public_subnet_azs
   tags                = { Environment = "prod" }
 }
+
 
 module "security" {
   source       = "../../modules/security"
