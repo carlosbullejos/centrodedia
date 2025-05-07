@@ -34,7 +34,7 @@ jobs:
 
       - name: Export EFS ID
         id: output_efs
-        working-directory: terraform/envs/prod
+        working-directory: envs/prod
         run: |
           echo "::set-output name=efs_id::$(terraform output -raw efs_id)"
 
