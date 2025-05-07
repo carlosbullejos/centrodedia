@@ -26,3 +26,12 @@ variable "eks_sg_id" {
   description = "Security Group para EKS control plane"
   type        = string
 }
+variable "cluster_role_arn" {
+  description = "ARN del service-linked role usado por el plano de control de EKS"
+  type        = string
+}
+
+variable "node_role_arn" {
+  description = "ARN del IAM Role que usarán los worker nodes"
+  type        = string
+}
