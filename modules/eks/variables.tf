@@ -1,18 +1,28 @@
 variable "cluster_name" {
-  type = string
+  description = "Nombre del cluster EKS"
+  type        = string
 }
 variable "vpc_id" {
-  type = string
+  description = "VPC ID donde desplegar EKS"
+  type        = string
 }
 variable "subnet_ids" {
-  type = list(string)
+  description = "Lista de subnets para EKS"
+  type        = list(string)
 }
 variable "node_group_name" {
-  type = string
+  description = "Nombre del grupo de nodos"
+  type        = string
 }
 variable "node_count" {
-  type = number
+  description = "Número de réplicas de nodos"
+  type        = number
 }
 variable "node_instance_type" {
-  type = string
+  description = "Tipo de instancia para los nodos"
+  type        = string
+}
+variable "eks_sg_id" {
+  description = "Security Group para EKS control plane"
+  type        = string
 }
