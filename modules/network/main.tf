@@ -4,13 +4,28 @@ resource "aws_vpc" "this" {
   tags                 = var.tags
 }
 
-resource "aws_subnet" "public" {
-  for_each            = toset(var.public_subnet_cidrs)
-  vpc_id              = aws_vpc.this.id
-  cidr_block          = each.value
-  availability_zone   = data.aws_availability_zones.available.names[index(var.public_subnet_cidrs, each.value)]
-  map_public_ip_on_launch = true
-  tags                = merge(var.tags, { Name = "public-${each.value}" })
+# Internet Gateway
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+  tags   = merge(var.tags, { Name = "${var.tags.Environment}-igw" })
 }
 
-data "aws_availability_zones" "available" {}
+# Route Table para las subnets públicas
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
+  tags   = merge(var.tags, { Name = "${var.tags.Environment}-public-rt" })
+}
+
+# Ruta por defecto a Internet
+resource "aws_route" "public_internet_access" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this.id
+}
+
+# Asociar cada subnet pública a esta route table
+resource "aws_route_table_association" "public_subnet_assoc" {
+  for_each       = aws_subnet.public
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.public.id
+}
