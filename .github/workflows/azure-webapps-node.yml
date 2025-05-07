@@ -1,0 +1,83 @@
+name: Infra + K8s Deploy
+
+on:
+  push:
+    branches: [ main, terraform ]
+  workflow_dispatch:
+jobs:
+  terraform:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    outputs:
+      efs_id: ${{ steps.output_efs.outputs.efs_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init & Apply
+        working-directory: envs/prod
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve
+
+      - name: Export EFS ID
+        id: output_efs
+        working-directory: envs/prod
+        run: |
+          echo "::set-output name=efs_id::$(terraform output -raw efs_id)"
+
+  k8s-deploy:
+    name: Deploy to EKS
+    needs: terraform
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.27.3
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --name YOUR_CLUSTER_NAME \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Render StorageClass with EFS ID
+        run: |
+          EFS_ID=${{ needs.terraform.outputs.efs_id }}
+          sed "s|<EFS_ID>|$EFS_ID|g" k8s/efs-sc.yaml > k8s/efs-sc-rendered.yaml
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/efs-sc-rendered.yaml
+          kubectl apply -f k8s/volumenes.yaml
+          kubectl apply -f k8s/services.yaml
+          kubectl apply -f k8s/mysql-deployment.yaml
+          kubectl apply -f k8s/nginx_efs.yaml
+          kubectl apply -f k8s/php-fpm_efs.yaml
+          kubectl apply -f k8s/ftp2.yaml
