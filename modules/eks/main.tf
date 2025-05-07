@@ -31,6 +31,6 @@ resource "aws_eks_node_group" "this" {
   }
 
   # Usa aquí el atributo singular que reconoce tu proveedor:
-  instance_type = var.node_instance_type
+  instance_types = var.node_instance_type
 }
 
