@@ -52,3 +52,16 @@ variable "cluster_public_access_cidrs" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+variable "ssh_key_name" {
+  description = "Nombre del par SSH para acceso remoto (opcional)"
+  type        = string
+  default     = ""
+}
+
+variable "node_security_group_ids" {
+  description = "Lista de Security Group IDs para remote_access de los worker nodes"
+  type        = list(string)
+  default     = []
+}
+
