@@ -82,3 +82,22 @@ variable "node_role_arn" {
   type        = string
   default     = "arn:aws:iam::799880597301:role/LabRole"
 }
+
+variable "cluster_endpoint_public_access" {
+  type    = bool
+  default = true
+}
+variable "cluster_endpoint_private_access" {
+  type    = bool
+  default = false
+}
+variable "cluster_public_access_cidrs" {
+  type    = list(string)
+  default = ["0.0.0.0/0"]
+}
+variable "ssh_key_name" {
+  type        = string
+  description = "Par de SSH para remote_access (debes crearlo en EC2) o déjalo vacío"
+  default     = ""
+}
+
