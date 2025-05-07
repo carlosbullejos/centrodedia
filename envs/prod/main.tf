@@ -47,4 +47,4 @@ module "ec2" {
 data "aws_s3_bucket" "backup" {
   bucket = var.backup_bucket_name
 }
-```
+
