@@ -7,8 +7,5 @@ cluster_name     = "centrodedia-cluster"
 # Tu /24 público
 my_ip_cidr       = "203.0.113.0/24"
 
-# ARN del service-linked role de EKS (este lo crea AWS automáticamente)
-cluster_role_arn = "arn:aws:iam::799880597301:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS"
-
-# ARN que usará Terraform para tu NodeGroup (tu LabRole)
+cluster_role_arn = "arn:aws:iam::799880597301:role/LabRole"
 node_role_arn    = "arn:aws:iam::799880597301:role/LabRole"
