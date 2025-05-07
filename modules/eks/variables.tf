@@ -35,3 +35,20 @@ variable "node_role_arn" {
   description = "ARN del IAM Role que usarán los worker nodes"
   type        = string
 }
+variable "cluster_endpoint_public_access" {
+  description = "Habilita endpoint público de la API de EKS"
+  type        = bool
+  default     = true
+}
+
+variable "cluster_endpoint_private_access" {
+  description = "Habilita endpoint privado de la API de EKS"
+  type        = bool
+  default     = false
+}
+
+variable "cluster_public_access_cidrs" {
+  description = "Lista de CIDRs autorizados para el endpoint público"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
