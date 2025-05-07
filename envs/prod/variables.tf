@@ -60,3 +60,13 @@ variable "public_subnet_cidrs" {
   type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 }
+
+variable "cluster_role_arn" {
+  description = "ARN del Service‑Linked Role de EKS"
+  type        = string
+}
+
+variable "node_role_arn" {
+  description = "ARN del IAM Role que usarán los worker nodes"
+  type        = string
+}
