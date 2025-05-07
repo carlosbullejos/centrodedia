@@ -30,7 +30,7 @@ jobs:
         working-directory: envs/prod
         run: |
           terraform init -input=false
-          terraform apply -auto-approve
+          terraform apply -lock=false -auto-approve
 
       - name: Export EFS ID
         id: output_efs
