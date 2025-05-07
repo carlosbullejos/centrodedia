@@ -31,6 +31,8 @@ module "eks" {
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = false
   cluster_public_access_cidrs     = ["0.0.0.0/0"]
+  ssh_key_name             = var.ssh_key_name
+  node_security_group_ids  = [ module.security.ec2_app_sg_id ]
 }
 
 module "efs" {
