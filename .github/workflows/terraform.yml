@@ -3,7 +3,7 @@ name: Infra + K8s Deploy
 on:
   push:
     branches: [ main, terraform ]
-
+  workflow_dispatch:
 jobs:
   terraform:
     name: Terraform Apply
