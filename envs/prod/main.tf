@@ -25,11 +25,13 @@ module "eks" {
 
 
 module "efs" {
-  source            = "../../modules/efs"
-  name              = var.efs_name
-  subnet_ids        = module.network.subnet_ids
-  security_group_id = module.security.efs_sg_id
+  source               = "../../modules/efs"
+  name                 = var.efs_name
+  subnet_ids           = module.network.subnet_ids
+  public_subnet_cidrs  = var.public_subnet_cidrs
+  security_group_id    = module.security.efs_sg_id
 }
+
 
 module "ec2" {
   source            = "../../modules/ec2"
