@@ -30,7 +30,7 @@ resource "aws_eks_node_group" "this" {
     min_size     = var.node_count
   }
 
-  # Usa aquí el atributo singular que reconoce tu proveedor:
-  instance_types = var.node_instance_type
+  # Aquí le pasamos una lista con tu tipo de instancia
+  instance_types = [var.node_instance_type]
 }
 
