@@ -27,7 +27,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init & Apply
-        working-directory: terraform/envs/prod
+        working-directory: envs/prod
         run: |
           terraform init -input=false
           terraform apply -auto-approve
