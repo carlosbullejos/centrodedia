@@ -1,3 +1,8 @@
+# Trae el Service‑Linked Role creado por AWS para EKS
+data "aws_iam_role" "eks_service" {
+  arn = var.cluster_role_arn
+}
+
 module "network" {
   source              = "../../modules/network"
   cidr                = var.cidr
@@ -21,17 +26,19 @@ module "eks" {
   node_count         = var.node_count
   node_instance_type = var.node_instance_type
   eks_sg_id          = module.security.eks_nodes_sg_id
-}
 
+  # Usamos el ARN del service‑linked role y el ARN fijo de tu LabRole
+  cluster_role_arn   = data.aws_iam_role.eks_service.arn
+  node_role_arn      = var.node_role_arn
+}
 
 module "efs" {
-  source               = "../../modules/efs"
-  name                 = var.efs_name
-  subnet_ids           = module.network.subnet_ids
-  public_subnet_cidrs  = var.public_subnet_cidrs
-  security_group_id    = module.security.efs_sg_id
+  source            = "../../modules/efs"
+  name              = var.efs_name
+  subnet_ids        = module.network.subnet_ids
+  public_subnet_cidrs = var.public_subnet_cidrs
+  security_group_id = module.security.efs_sg_id
 }
-
 
 module "ec2" {
   source            = "../../modules/ec2"
@@ -45,9 +52,6 @@ module "ec2" {
   efs_mount_point   = "/mnt/efs"
 }
 
-# Data source for existing S3 bucket
-
 data "aws_s3_bucket" "backup" {
   bucket = var.backup_bucket_name
 }
-
