@@ -22,9 +22,13 @@ module "eks" {
   node_instance_type = var.node_instance_type
   eks_sg_id          = module.security.eks_nodes_sg_id
 
-  # Usamos tu LabRole para control‑plane y para worker‑nodes
   cluster_role_arn   = var.cluster_role_arn
   node_role_arn      = var.node_role_arn
+
+  # Estos flags replican “Public access” y “Modo automático desactivado”:
+  cluster_endpoint_public_access  = true
+  cluster_endpoint_private_access = false
+  cluster_public_access_cidrs     = ["0.0.0.0/0"]
 }
 
 module "efs" {
