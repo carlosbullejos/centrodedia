@@ -21,16 +21,16 @@ resource "aws_eks_cluster" "this" {
 resource "aws_eks_node_group" "this" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = var.node_group_name
-  node_role_arn   = var.node_role_arn   # Tu LabRole
+  node_role_arn   = var.node_role_arn
   subnet_ids      = var.subnet_ids
+
   scaling_config {
     desired_size = var.node_count
     max_size     = var.node_count + 1
     min_size     = var.node_count
   }
-  instance_types = var.node_instance_type
+
+  # Usa aquí el atributo singular que reconoce tu proveedor:
+  instance_type = var.node_instance_type
 }
 
-
-  instance_types = var.node_instance_type
-}
