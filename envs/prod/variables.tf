@@ -104,4 +104,8 @@ variable "ssh_key_name" {
   description = "Par de SSH para remote_access (debes crearlo en EC2) o déjalo vacío"
   default     = ""
 }
+variable "ssh_key_name" {
+  description = "Par SSH para la instancia EC2"
+  type        = string
+}
 
