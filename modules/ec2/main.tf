@@ -17,5 +17,8 @@ resource "aws_instance" "app" {
     efs_id          = var.efs_id
     efs_mount_point = var.efs_mount_point
   })
+  depends_on = [
+    aws_efs_mount_target.this  # o aws_efs_mount_target.this[*]
+  ]
 }
 
