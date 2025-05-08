@@ -53,6 +53,9 @@ module "ec2" {
   root_volume_size  = 20
   efs_id            = module.efs.efs_id
   efs_mount_point   = "/mnt/efs"
+ depends_on = [
+    aws_efs_mount_target.this  # o aws_efs_mount_target.this[*]
+  ]
 }
 
 data "aws_s3_bucket" "backup" {
