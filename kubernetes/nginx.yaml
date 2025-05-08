@@ -1,0 +1,79 @@
+---
+# 1) StorageClass dinámico para EFS (si no lo has creado aún)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-0dcf013be3156998c
+  directoryPerms: "700"
+
+---
+# 2) PVC para el contenido de la web (directorio "pagina" en el EFS)
+/mnt/efs/pagina → subPath "pagina"
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: php-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# 3) Deployment de NGINX
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: carlos-web-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: carlos-web
+  template:
+    metadata:
+      labels:
+        app: carlos-web
+    spec:
+      containers:
+        - name: carlos-web
+          image: nginx-carlos
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+            - name: php-storage
+              mountPath: /var/www/html
+              subPath: pagina  # monta /mnt/efs/pagina
+      volumes:
+        - name: php-storage
+          persistentVolumeClaim:
+            claimName: php-pvc
+
+---
+# 4) Service LoadBalancer para NGINX
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: carlos-web
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+  type: LoadBalancer
