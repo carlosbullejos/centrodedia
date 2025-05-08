@@ -53,6 +53,7 @@ module "ec2" {
   root_volume_size  = 20
   efs_id            = module.efs.efs_id
   efs_mount_point   = "/mnt/efs"
+  ssh_key_name      = var.ssh_key_name 
   depends_on = [
      module.efs
      ]
