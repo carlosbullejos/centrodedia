@@ -6,9 +6,19 @@ resource "aws_security_group" "eks_nodes" {
   description = "SG para worker nodes de EKS"
   vpc_id      = var.vpc_id
 
-  # Permite todo el tráfico interno entre nodos
-  ingress { from_port = 0; to_port = 0; protocol = "-1"; self = true }
-  egress  { from_port = 0; to_port = 0; protocol = "-1"; cidr_blocks = ["0.0.0.0/0"] }
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # 2) SG para mount targets de EFS
@@ -17,15 +27,19 @@ resource "aws_security_group" "efs" {
   description = "SG para mount targets de EFS"
   vpc_id      = var.vpc_id
 
-  # Solo abre NFS (2049) desde la EC2 de app
   ingress {
-    from_port       = 2049
-    to_port         = 2049
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ec2_app.id]
+    from_port             = 2049
+    to_port               = 2049
+    protocol              = "tcp"
+    security_groups       = [aws_security_group.ec2_app.id]
   }
 
-  egress { from_port = 0; to_port = 0; protocol = "-1"; cidr_blocks = ["0.0.0.0/0"] }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # 3) SG para tu instancia EC2 (app-server)
@@ -34,7 +48,6 @@ resource "aws_security_group" "ec2_app" {
   description = "SG para instancia EC2 app-server"
   vpc_id      = var.vpc_id
 
-  # SSH desde tu IP
   ingress {
     from_port   = 22
     to_port     = 22
@@ -42,5 +55,10 @@ resource "aws_security_group" "ec2_app" {
     cidr_blocks = [var.my_ip_cidr]
   }
 
-  egress { from_port = 0; to_port = 0; protocol = "-1"; cidr_blocks = ["0.0.0.0/0"] }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
