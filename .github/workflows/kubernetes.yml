@@ -10,39 +10,39 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region:            us-east-1
+    - uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region:            us-east-1
 
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
 
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-            --name centrodedia-cluster \
-            --region us-east-1
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-      - name: Apply Kubernetes manifests
-        run: |
-          kubectl apply -f kubernetes/
+    - name: Apply Kubernetes manifests
+      run: kubectl apply -f kubernetes/
 
-      - name: Verify rollout
-        run: |
-          kubectl rollout status deployment/carlos-web-deployment --timeout=2m
-          kubectl rollout status deployment/php-fpm-deployment --timeout=2m
-          kubectl rollout status deployment/mysql-deployment --timeout=2m
-          kubectl rollout status deployment/ftp-server --timeout=2m
+    - name: Debug pods & events
+      run: |
+        kubectl get pods -l app=carlos-web -o wide
+        kubectl describe pod -l app=carlos-web
+        kubectl logs -l app=carlos-web || true
+
+    - name: Verify rollout
+      run: |
+        kubectl rollout status deployment/carlos-web-deployment --timeout=5m
+        kubectl rollout status deployment/php-fpm-deployment --timeout=3m
+        kubectl rollout status deployment/mysql-deployment --timeout=3m
+        kubectl rollout status deployment/ftp-server --timeout=3m
