@@ -1,4 +1,23 @@
 provider "aws" {}
+resource "aws_security_group" "eks_nodes" {
+  name        = "${var.cluster_name}-nodes-sg"
+  description = "SG para worker nodes de EKS"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 
 resource "aws_security_group" "efs" {
   name        = "${var.cluster_name}-efs-sg"
