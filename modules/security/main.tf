@@ -1,68 +1,46 @@
 provider "aws" {}
 
-# SG for EKS nodes (workers)
+# 1) SG para EKS worker nodes
 resource "aws_security_group" "eks_nodes" {
   name        = "${var.cluster_name}-nodes-sg"
-  description = "Security group for EKS worker nodes"
+  description = "SG para worker nodes de EKS"
   vpc_id      = var.vpc_id
 
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    self        = true
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # Permite todo el tráfico interno entre nodos
+  ingress { from_port = 0; to_port = 0; protocol = "-1"; self = true }
+  egress  { from_port = 0; to_port = 0; protocol = "-1"; cidr_blocks = ["0.0.0.0/0"] }
 }
 
-# SG for EFS mount targets
+# 2) SG para mount targets de EFS
 resource "aws_security_group" "efs" {
   name        = "${var.cluster_name}-efs-sg"
-  description = "Security group for EFS mount targets"
+  description = "SG para mount targets de EFS"
   vpc_id      = var.vpc_id
 
+  # Solo abre NFS (2049) desde la EC2 de app
   ingress {
     from_port       = 2049
     to_port         = 2049
     protocol        = "tcp"
-    security_groups = [aws_security_group.eks_nodes.id]
+    security_groups = [aws_security_group.ec2_app.id]
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  egress { from_port = 0; to_port = 0; protocol = "-1"; cidr_blocks = ["0.0.0.0/0"] }
 }
 
-# SG for EC2 app instance
+# 3) SG para tu instancia EC2 (app-server)
 resource "aws_security_group" "ec2_app" {
   name        = "${var.cluster_name}-app-sg"
-  description = "Security group for EC2 application server"
+  description = "SG para instancia EC2 app-server"
   vpc_id      = var.vpc_id
 
+  # SSH desde tu IP
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [var.my_ip_cidr]
   }
-  ingress {
-    from_port       = 2049
-    to_port         = 2049
-    protocol        = "tcp"
-    security_groups = [aws_security_group.efs.id]
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+
+  egress { from_port = 0; to_port = 0; protocol = "-1"; cidr_blocks = ["0.0.0.0/0"] }
 }
