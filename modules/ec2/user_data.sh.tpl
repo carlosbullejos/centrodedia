@@ -3,6 +3,9 @@
 yum install -y amazon-efs-utils
 
 # Monta el EFS en /mnt/efs
+mkdir /mnt/ftp
+mkdir /mnt/mysql
+mkdir /mnt/pagina
 mkdir -p ${efs_mount_point}
 mount -t efs ${efs_id}:/ ${efs_mount_point}
 
