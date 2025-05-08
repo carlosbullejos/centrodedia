@@ -28,10 +28,10 @@ resource "aws_security_group" "efs" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port                = 2049
-    to_port                  = 2049
-    protocol                 = "tcp"
-    source_security_group_id = aws_security_group.ec2_app.id
+    from_port       = 2049
+    to_port         = 2049
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ec2_app.id]
   }
 
   egress {
