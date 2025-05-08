@@ -61,9 +61,7 @@ spec:
             - name: PASV_MAX_PORT
               value: "21101"
             - name: PASV_ADDRESS
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
+              value: vsftpd
             - name: LOG_STDOUT
               value: "YES"
           volumeMounts:
