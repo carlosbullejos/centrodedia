@@ -1,0 +1,85 @@
+---
+# 1) (Reusa el StorageClass efs-sc ya creado en nginx.yaml)
+
+---
+# 2) PVC para el contenido PHP (directorio "pagina" en EFS)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: php-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# 3) PVC para FTP (directorio "ftp" en EFS)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ftp-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# 4) Deployment de PHP-FPM
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-fpm-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: php-fpm
+  template:
+    metadata:
+      labels:
+        app: php-fpm
+    spec:
+      containers:
+        - name: php-fpm
+          image: php
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - name: php-storage
+              mountPath: /var/www/html
+              subPath: pagina  # monta /mnt/efs/pagina
+            - name: ftp-storage
+              mountPath: /home/ftpusers/shared
+              subPath: ftp     # monta /mnt/efs/ftp
+      imagePullSecrets:
+        - name: regcred    # si tiras de un repo privado
+      volumes:
+        - name: php-storage
+          persistentVolumeClaim:
+            claimName: php-pvc
+        - name: ftp-storage
+          persistentVolumeClaim:
+            claimName: ftp-pvc
+
+---
+# 5) Service ClusterIP para PHP-FPM
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-fpm-service
+spec:
+  selector:
+    app: php-fpm
+  ports:
+    - name: php-fpm-port
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+  type: ClusterIP
