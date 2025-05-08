@@ -1,5 +1,4 @@
 ---
-# 1) StorageClass dinámico para EFS (si no lo has creado aún)
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -10,10 +9,7 @@ parameters:
   provisioningMode: efs-ap
   fileSystemId: fs-0dcf013be3156998c
   directoryPerms: "700"
-
 ---
-# 2) PVC para el contenido de la web (directorio "pagina" en el EFS)
-/mnt/efs/pagina → subPath "pagina"
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -25,9 +21,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
-
 ---
-# 3) Deployment de NGINX
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -52,14 +46,12 @@ spec:
           volumeMounts:
             - name: php-storage
               mountPath: /var/www/html
-              subPath: pagina  # monta /mnt/efs/pagina
+              subPath: pagina
       volumes:
         - name: php-storage
           persistentVolumeClaim:
             claimName: php-pvc
-
 ---
-# 4) Service LoadBalancer para NGINX
 apiVersion: v1
 kind: Service
 metadata:
