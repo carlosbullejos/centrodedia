@@ -22,8 +22,3 @@ variable "efs_id" {
 variable "efs_mount_point" {
   type        = string
 }
-
-variable "ssh_key_name" {
-  description = "Nombre del Key Pair para SSH"
-  type        = string
-}
