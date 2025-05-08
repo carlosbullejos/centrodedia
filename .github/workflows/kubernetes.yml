@@ -22,12 +22,13 @@ jobs:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region:            ${{ secrets.AWS_REGION }}
+          aws-region:            us-east-1
 
       - name: Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: '1.27.0'      # o la versión que prefieras
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
 
       - name: Update kubeconfig
         run: |
@@ -37,7 +38,7 @@ jobs:
 
       - name: Apply Kubernetes manifests
         run: |
-          kubectl apply -f kubernetes/ 
+          kubectl apply -f kubernetes/
 
       - name: Verify rollout
         run: |
