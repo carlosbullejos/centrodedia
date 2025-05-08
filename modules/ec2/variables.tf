@@ -22,3 +22,7 @@ variable "efs_id" {
 variable "efs_mount_point" {
   type        = string
 }
+variable "ssh_key_name" {
+  description = "Par SSH para la instancia EC2"
+  type        = string
+}
