@@ -113,7 +113,7 @@ resource "helm_release" "nfs_subdir_provisioner" {
 
   set {
     name  = "nfs.server"
-    value = "${module.efs.efs_id}.efs.${var.region}.amazonaws.com"
+    value = "${module.efs.efs_id}.efs.us-east-1.amazonaws.com"
   }
   set {
     name  = "nfs.path"
