@@ -34,6 +34,83 @@ module "eks" {
   ssh_key_name             = var.ssh_key_name
   node_security_group_ids  = [ module.security.ec2_app_sg_id ]
 }
+#################################################
+# 1) Obtén el token de autenticación para el EKS #
+#################################################
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks.cluster_name
+}
+
+########################################################
+# 2) Configura los providers Kubernetes y Helm para EKS #
+########################################################
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+  token                  = data.aws_eks_cluster_auth.this.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+    token                  = data.aws_eks_cluster_auth.this.token
+  }
+}
+
+#############################################
+# 3) Asocia la política necesaria al NodeRole
+#############################################
+# Primero extraemos el nombre del role a partir de su ARN
+data "aws_iam_role" "node" {
+  arn = module.eks.node_role_arn
+}
+
+resource "aws_iam_role_policy_attachment" "efs_csi" {
+  role       = data.aws_iam_role.node.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEKS_EFS_CSI_Driver_Policy"
+}
+
+####################################################
+# 4) Despliega el AWS EFS CSI Driver como un Helm #
+####################################################
+resource "helm_release" "efs_csi_driver" {
+  name       = "efs-csi-driver"
+  repository = "https://kubernetes-sigs.github.io/aws-efs-csi-driver"
+  chart      = "aws-efs-csi-driver"
+  namespace  = "kube-system"
+  version    = "2.8.8"   # o la versión que prefieras
+
+  # Forzamos el uso del repositorio público y la etiqueta compatible:
+  set {
+    name  = "image.repository"
+    value = "public.ecr.aws/eks/aws-efs-csi-driver"
+  }
+  set {
+    name  = "image.tag"
+    value = "v1.7.0-eks-1-32-6"
+  }
+  set {
+    name  = "controller.image.repository"
+    value = "public.ecr.aws/eks/aws-efs-csi-driver"
+  }
+  set {
+    name  = "controller.image.tag"
+    value = "v1.7.0-eks-1-32-6"
+  }
+  set {
+    name  = "node.image.repository"
+    value = "public.ecr.aws/eks/aws-efs-csi-driver"
+  }
+  set {
+    name  = "node.image.tag"
+    value = "v1.7.0-eks-1-32-6"
+  }
+
+  timeout         = 300
+  atomic          = true
+  cleanup_on_fail = true
+}
 
 module "efs" {
   source               = "../../modules/efs"
