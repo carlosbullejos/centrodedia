@@ -34,54 +34,49 @@ module "eks" {
   ssh_key_name             = var.ssh_key_name
   node_security_group_ids  = [ module.security.ec2_app_sg_id ]
 }
-#################################################
-# 1) Obtén el token de autenticación para el EKS #
-#################################################
-data "aws_eks_cluster_auth" "this" {
-  name = module.eks.cluster_name
+# 1) Autenticación EKS
+data "aws_eks_cluster_auth" "cluster" {
+  name = var.cluster_name
 }
 
-########################################################
-# 2) Configura los providers Kubernetes y Helm para EKS #
-########################################################
+# 2) Providers Kubernetes & Helm
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
-  token                  = data.aws_eks_cluster_auth.this.token
+  token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
 provider "helm" {
   kubernetes {
     host                   = module.eks.cluster_endpoint
     cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
-    token                  = data.aws_eks_cluster_auth.this.token
+    token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
 
-#############################################
-# 3) Asocia la política necesaria al NodeRole
-#############################################
-# Primero extraemos el nombre del role a partir de su ARN
-data "aws_iam_role" "node" {
-  arn = module.eks.node_role_arn
+# 3) Extraer el nombre del IAM Role de nodos desde su ARN
+locals {
+  node_role_name = replace(
+    var.node_role_arn,
+    "arn:aws:iam::${var.aws_account}:role/",
+    ""
+  )
 }
 
+# 4) Adjuntar política EFS CSI Driver al Role de nodos
 resource "aws_iam_role_policy_attachment" "efs_csi" {
-  role       = data.aws_iam_role.node.name
+  role       = local.node_role_name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEKS_EFS_CSI_Driver_Policy"
 }
 
-####################################################
-# 4) Despliega el AWS EFS CSI Driver como un Helm #
-####################################################
+# 5) Desplegar AWS EFS CSI Driver via Helm
 resource "helm_release" "efs_csi_driver" {
   name       = "efs-csi-driver"
+  namespace  = "kube-system"
   repository = "https://kubernetes-sigs.github.io/aws-efs-csi-driver"
   chart      = "aws-efs-csi-driver"
-  namespace  = "kube-system"
-  version    = "2.8.8"   # o la versión que prefieras
+  version    = "2.8.8"
 
-  # Forzamos el uso del repositorio público y la etiqueta compatible:
   set {
     name  = "image.repository"
     value = "public.ecr.aws/eks/aws-efs-csi-driver"
@@ -111,6 +106,7 @@ resource "helm_release" "efs_csi_driver" {
   atomic          = true
   cleanup_on_fail = true
 }
+
 
 module "efs" {
   source               = "../../modules/efs"
