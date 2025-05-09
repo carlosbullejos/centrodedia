@@ -10,7 +10,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: efs-sc
+  storageClassName: nfs-client
   resources:
     requests:
       storage: 1Gi
