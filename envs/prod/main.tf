@@ -63,49 +63,6 @@ locals {
   )
 }
 
-# 4) Adjuntar política EFS CSI Driver al Role de nodos
-resource "aws_iam_role_policy_attachment" "efs_csi" {
-  role       = local.node_role_name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEKS_EFS_CSI_Driver_Policy"
-}
-
-# 5) Desplegar AWS EFS CSI Driver via Helm
-resource "helm_release" "efs_csi_driver" {
-  name       = "efs-csi-driver"
-  namespace  = "kube-system"
-  repository = "https://kubernetes-sigs.github.io/aws-efs-csi-driver"
-  chart      = "aws-efs-csi-driver"
-  version    = "2.8.8"
-
-  set {
-    name  = "image.repository"
-    value = "public.ecr.aws/eks/aws-efs-csi-driver"
-  }
-  set {
-    name  = "image.tag"
-    value = "v1.7.0-eks-1-32-6"
-  }
-  set {
-    name  = "controller.image.repository"
-    value = "public.ecr.aws/eks/aws-efs-csi-driver"
-  }
-  set {
-    name  = "controller.image.tag"
-    value = "v1.7.0-eks-1-32-6"
-  }
-  set {
-    name  = "node.image.repository"
-    value = "public.ecr.aws/eks/aws-efs-csi-driver"
-  }
-  set {
-    name  = "node.image.tag"
-    value = "v1.7.0-eks-1-32-6"
-  }
-
-  timeout         = 300
-  atomic          = true
-  cleanup_on_fail = true
-}
 
 
 module "efs" {
