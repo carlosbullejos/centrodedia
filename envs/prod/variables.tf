@@ -104,4 +104,12 @@ variable "ssh_key_name" {
   description = "Par de SSH para remote_access (debes crearlo en EC2) o déjalo vacío"
   default     = ""
 }
+#
+# Cuenta AWS (para extraer el nombre del IAM Role)
+#
+variable "aws_account" {
+  description = "ID de tu cuenta AWS (ej. 123456789012)"
+  type        = string
+  default     = "799880597301"
+}
 
