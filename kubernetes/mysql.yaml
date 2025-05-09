@@ -1,15 +1,3 @@
----
-# 1) (Reusa el StorageClass efs-sc si ya lo tienes)
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: efs-sc
-provisioner: efs.csi.aws.com
-volumeBindingMode: WaitForFirstConsumer
-parameters:
-  provisioningMode: efs-ap
-  fileSystemId: fs-0dcf013be3156998c
-  directoryPerms: "700"
 
 ---
 # 2) PVC para MySQL
@@ -20,7 +8,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany          # EFS permite RWM
-  storageClassName: efs-sc
+  storageClassName: nfs-client
   resources:
     requests:
       storage: 5Gi
