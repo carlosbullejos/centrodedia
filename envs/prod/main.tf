@@ -81,7 +81,7 @@ module "ec2" {
 # 3) Data Sources
 ###############################################################################
 data "aws_eks_cluster_auth" "cluster" {
-  name = module.eks.cluster_name
+  name = var.cluster_name
 }
 
 data "aws_s3_bucket" "backup" {
