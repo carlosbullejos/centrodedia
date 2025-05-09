@@ -132,9 +132,9 @@ resource "helm_release" "nfs_subdir_provisioner" {
     value = "false"
   }
 
-  timeout         = 300
-  atomic          = true
-  cleanup_on_fail = true
+  atomic          = false    # no desinstalar si tarda o falla
+  timeout         = 600      # hasta 10 minutos
+  cleanup_on_fail = false
 
   # Aseguramos que la release sólo se aplica después de que el clúster EKS esté listo
   depends_on = [module.eks]
