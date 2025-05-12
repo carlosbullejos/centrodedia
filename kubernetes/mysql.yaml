@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -26,9 +27,12 @@ spec:
       labels:
         app: mysql
     spec:
+      # Si sacas la imagen de ECR privada, recuerda añadir:
+      # imagePullSecrets:
+      #   - name: regcred
       containers:
         - name: mysql
-           image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
+          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
           imagePullPolicy: Always
           ports:
             - containerPort: 3306
