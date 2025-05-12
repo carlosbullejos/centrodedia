@@ -11,36 +11,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
----
-# 2) PersistentVolume estático apuntando a tu EFS
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: efs-pv
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: efs-aws
-  csi:
-    driver: efs.csi.aws.com
-    volumeHandle: fs-0d2fb07ea1eb68ec2  # sustituye por tu FileSystemId
-
----
-# 3) PVC para el contenido PHP (subPath "pagina" en EFS)
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: php-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-aws
-  resources:
-    requests:
-      storage: 1Gi
 
 ---
 # 4) PVC para FTP (subPath "ftp" en EFS)
