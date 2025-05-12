@@ -13,7 +13,7 @@ resource "aws_instance" "app" {
     volume_size = var.root_volume_size
   }
 
-  user_data = templatefile("${path.module}/user_data.sh.tpl", {
+  user_data = "user_data.sh.tpl", {
     efs_id          = var.efs_id
     efs_mount_point = var.efs_mount_point
   })
