@@ -7,7 +7,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-client
+  storageClassName: efs-aws      # ← cambiamos a la SC estática de EFS
   resources:
     requests:
       storage: 5Gi
@@ -40,7 +40,7 @@ spec:
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
-              subPath: mysql
+              subPath: mysql    # monta /mnt/efs/mysql dentro del PV estático
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
