@@ -13,9 +13,6 @@ variable "root_volume_size" {
   default     = 10
 }
 
-provider "aws" {
-  region = var.region
-}
 
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
