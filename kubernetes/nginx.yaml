@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: carlos-web
-          image: nginx-carlos
-          imagePullPolicy: IfNotPresent
+          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:carlos-web
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
             - containerPort: 443
