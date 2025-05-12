@@ -82,19 +82,18 @@
         src: "{{ templates_dir }}/Dockerfile_mysql2.j2"
         dest: "{{ build_root }}/mysql/Dockerfile"
         mode: "0644"
-    - name: Copy vsftpd virtual users
-      ansible.builtin.copy:
-        src: "{{ templates_dir }}/entrypoint.sh"
-        dest: "{{ build_root }}/ftp/entrypoint.sh"
-        mode: "0644"
-
-  
+   
 
     - name: Create ftp build context
       ansible.builtin.file:
         path: "{{ build_root }}/ftp"
         state: directory
         mode: "0755"
+    - name: Copy entrypoint a ftp
+      ansible.builtin.copy:
+        src: "{{ templates_dir }}/entrypoint.sh"
+        dest: "{{ build_root }}/ftp/entrypoint.sh"
+        mode: "0644"
 
     - name: Template FTP Dockerfile
       ansible.builtin.template:
