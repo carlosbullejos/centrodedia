@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: vsftpd
-           image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:ftp
+          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:ftp
           imagePullPolicy: Always
           ports:
             - containerPort: 21
