@@ -32,8 +32,9 @@ jobs:
         aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
     - name: Apply Kubernetes manifests
+      run: kubectl apply -f kubernetes/nfs-storageclass.yaml
+    - name: Apply Kubernetes manifests
       run: kubectl apply -f kubernetes/
-
     - name: Debug pods & events
       run: |
         kubectl get pods -l app=carlos-web -o wide
