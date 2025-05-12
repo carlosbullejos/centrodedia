@@ -1,4 +1,3 @@
-
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -14,7 +13,7 @@ spec:
   storageClassName: efs-aws
   csi:
     driver: efs.csi.aws.com
-    volumeHandle: fs-0d2fb07ea1eb68ec2
+    volumeHandle: fs-00d4ad54ba0695ebe
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -27,7 +26,7 @@ spec:
     requests:
       storage: 1Gi
   storageClassName: efs-aws
-  ---
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -49,13 +48,13 @@ spec:
           ports:
             - containerPort: 9000
           volumeMounts:
-            - mountPath: /var/www/html
-              name: php-storage
+            - name: php-storage
+              mountPath: /var/www/html
       volumes:
         - name: php-storage
           persistentVolumeClaim:
             claimName: php-pvc
-            ---
+---
 apiVersion: v1
 kind: Service
 metadata:
