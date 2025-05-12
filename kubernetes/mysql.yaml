@@ -1,5 +1,4 @@
 ---
-# 1) PVC para MySQL
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -7,7 +6,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: efs-aws      # ← cambiamos a la SC estática de EFS
+  storageClassName: efs-aws
+  volumeName: mysql-pv      # <--- enlaza al PV mysql-pv
   resources:
     requests:
       storage: 5Gi
