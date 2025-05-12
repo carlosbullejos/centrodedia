@@ -1,4 +1,5 @@
-
+---
+# 1) PVC para el contenido PHP
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -6,11 +7,13 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-client
+  storageClassName: efs-aws        # <- aquí cambiamos a efs-aws
   resources:
     requests:
       storage: 1Gi
+
 ---
+# 2) Deployment de tu web (nginx-carlos)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,12 +38,14 @@ spec:
           volumeMounts:
             - name: php-storage
               mountPath: /var/www/html
-              subPath: pagina
+              subPath: pagina    # monta /mnt/efs/pagina
       volumes:
         - name: php-storage
           persistentVolumeClaim:
             claimName: php-pvc
+
 ---
+# 3) Service LoadBalancer para exponer nginx
 apiVersion: v1
 kind: Service
 metadata:
