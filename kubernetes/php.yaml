@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -29,7 +30,7 @@ spec:
       imagePullSecrets:
         - name: regcred
       containers:
-      - name: php
+        - name: php-fpm
           image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
           imagePullPolicy: Always
           ports:
