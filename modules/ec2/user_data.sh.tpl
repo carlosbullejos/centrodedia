@@ -9,14 +9,14 @@ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stabl
 chmod +x kubectl && mv kubectl /usr/local/bin/
 
 # 3) Espera a que el clúster EKS esté ACTIVE
-until aws eks describe-cluster --name "${cluster_name}" --region "${region}" \
+until aws eks describe-cluster --name centrodedia-cluster --region us-east-1 \
        --query "cluster.status" --output text | grep ACTIVE; do
   echo "Esperando a que el EKS (${cluster_name}) esté ACTIVE..."
   sleep 10
 done
 
 # 4) Configura kubeconfig e instala el driver CSI de EFS
-aws eks update-kubeconfig --name "${cluster_name}" --region "${region}"
+aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1 
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 
 # 5) Espera a que los pods CSI estén listos
@@ -29,6 +29,9 @@ mkdir -p ${efs_mount_point}
 mount -t efs ${efs_id}:/ ${efs_mount_point}
 echo "${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0" >> /etc/fstab
 mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
+mkdir -p /mnt/efs/ftp
+mkdir -p /mnt/efs/mysql
+mkdir -p /mnt/efs/nginx
 
 # 7) Instala y arranca SSH
 yum install -y openssh-server
