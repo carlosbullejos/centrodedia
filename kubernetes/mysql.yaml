@@ -1,3 +1,15 @@
+---
+# 1) Secret con las credenciales de MySQL
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-credentials
+type: Opaque
+stringData:
+  MYSQL_ROOT_PASSWORD: mi_root_passwd
+  MYSQL_DATABASE:     mi_basedatos
+  MYSQL_USER:         mi_usuario
+  MYSQL_PASSWORD:     mi_passwd_usuario
 
 ---
 # 2) PVC para MySQL
@@ -7,14 +19,14 @@ metadata:
   name: mysql-pvc
 spec:
   accessModes:
-    - ReadWriteMany          # EFS permite RWM
+    - ReadWriteMany
   storageClassName: nfs-client
   resources:
     requests:
       storage: 5Gi
 
 ---
-# 3) Deployment de MySQL
+# 3) Deployment de MySQL, usando el Secret para las env vars
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -36,12 +48,13 @@ spec:
           ports:
             - containerPort: 3306
           envFrom:
-            - configMapRef:
-                name: mysql-config
+            # Consumimos las variables sensibles desde el Secret
+            - secretRef:
+                name: mysql-credentials
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
-              subPath: mysql    # monta solo el directorio "mysql" del EFS
+              subPath: mysql
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
