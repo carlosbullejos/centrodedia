@@ -27,8 +27,6 @@ spec:
       labels:
         app: php-fpm
     spec:
-      imagePullSecrets:
-        - name: regcred
       containers:
         - name: php-fpm
           image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
