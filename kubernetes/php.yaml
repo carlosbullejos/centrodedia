@@ -1,8 +1,31 @@
 ---
-# 1) (Reusa el StorageClass efs-sc ya creado en nginx.yaml)
+# 1) (Reusa el StorageClass efs-aws ya creado en efs-static.yaml)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-aws
+provisioner: efs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
 
 ---
-# 2) PVC para el contenido PHP (directorio "pagina" en EFS)
+# 2) PersistentVolume estático apuntando a tu EFS
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efs-pv
+spec:
+  capacity:
+    storage: 100Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-aws
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0dcf013be3156998c   # sustituye por tu FileSystemId
+
+---
+# 3) PVC para el contenido PHP (subPath "pagina" en EFS)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -10,13 +33,13 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-client
+  storageClassName: efs-aws
   resources:
     requests:
       storage: 1Gi
 
 ---
-# 3) PVC para FTP (directorio "ftp" en EFS)
+# 4) PVC para FTP (subPath "ftp" en EFS)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -24,13 +47,13 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: efs-sc
+  storageClassName: efs-aws
   resources:
     requests:
       storage: 1Gi
 
 ---
-# 4) Deployment de PHP-FPM
+# 5) Deployment de PHP-FPM
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,6 +68,8 @@ spec:
       labels:
         app: php-fpm
     spec:
+      imagePullSecrets:
+        - name: regcred    # si tu imagen es privada
       containers:
         - name: php-fpm
           image: php
@@ -54,12 +79,10 @@ spec:
           volumeMounts:
             - name: php-storage
               mountPath: /var/www/html
-              subPath: pagina  # monta /mnt/efs/pagina
+              subPath: pagina    # monta /mnt/efs/pagina
             - name: ftp-storage
               mountPath: /home/ftpusers/shared
-              subPath: ftp     # monta /mnt/efs/ftp
-      imagePullSecrets:
-        - name: regcred    # si tiras de un repo privado
+              subPath: ftp       # monta /mnt/efs/ftp
       volumes:
         - name: php-storage
           persistentVolumeClaim:
@@ -69,7 +92,7 @@ spec:
             claimName: ftp-pvc
 
 ---
-# 5) Service ClusterIP para PHP-FPM
+# 6) Service ClusterIP para PHP-FPM
 apiVersion: v1
 kind: Service
 metadata:
