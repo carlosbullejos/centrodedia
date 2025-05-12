@@ -1,7 +1,5 @@
-
-
 ---
-# 2) PVC que enlaza al StorageClass de EFS (volumen raíz)
+# 1) PVC que enlaza al PV estático de EFS
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -9,12 +7,13 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-client      # <--- aquí el cambio
+  storageClassName: efs-aws       # <--- aquí el cambio
   resources:
     requests:
       storage: 1Gi
+
 ---
-# 3) Deployment de FTP usando subPath para mapear /ftp del EFS
+# 2) Deployment de FTP usando subPath para mapear /ftp del EFS
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -44,9 +43,9 @@ spec:
               value: "ftppass"
             - name: PASV_ENABLE
               value: "YES"
-            - name: PASV_MIN_PORT
+            - name: PASV_MIN_PORT"
               value: "21100"
-            - name: PASV_MAX_PORT
+            - name: PASV_MAX_PORT"
               value: "21101"
             - name: PASV_ADDRESS
               value: vsftpd
@@ -62,7 +61,7 @@ spec:
             claimName: ftp-pvc
 
 ---
-# 4) Service de FTP
+# 3) Service de FTP
 apiVersion: v1
 kind: Service
 metadata:
