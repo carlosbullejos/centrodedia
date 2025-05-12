@@ -1,18 +1,5 @@
 ---
-# 1) Secret con las credenciales de MySQL
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mysql-credentials
-type: Opaque
-stringData:
-  MYSQL_ROOT_PASSWORD: mi_root_passwd
-  MYSQL_DATABASE:     mi_basedatos
-  MYSQL_USER:         mi_usuario
-  MYSQL_PASSWORD:     mi_passwd_usuario
-
----
-# 2) PVC para MySQL
+# 1) PVC para MySQL
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -26,7 +13,7 @@ spec:
       storage: 5Gi
 
 ---
-# 3) Deployment de MySQL, usando el Secret para las env vars
+# 2) Deployment de MySQL, referenciando el Secret
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -48,7 +35,6 @@ spec:
           ports:
             - containerPort: 3306
           envFrom:
-            # Consumimos las variables sensibles desde el Secret
             - secretRef:
                 name: mysql-credentials
           volumeMounts:
@@ -61,7 +47,7 @@ spec:
             claimName: mysql-pvc
 
 ---
-# 4) Service para MySQL
+# 3) Service para exponer MySQL
 apiVersion: v1
 kind: Service
 metadata:
