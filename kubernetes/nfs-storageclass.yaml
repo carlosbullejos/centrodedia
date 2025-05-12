@@ -13,7 +13,7 @@ metadata:
   name: efs-pv
 spec:
   capacity:
-    storage: 100Ti
+    storage: 10Gi
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
