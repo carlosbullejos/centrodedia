@@ -98,7 +98,7 @@ resource "aws_instance" "app_server" {
     region          = var.region
     efs_id          = module.efs.efs_id
     efs_mount_point = "/mnt/efs"
-  })
+  }
 
   tags = {
     Name = "app-server"
