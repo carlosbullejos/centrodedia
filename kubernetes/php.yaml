@@ -22,7 +22,7 @@ spec:
   storageClassName: efs-aws
   csi:
     driver: efs.csi.aws.com
-    volumeHandle: fs-0dcf013be3156998c   # sustituye por tu FileSystemId
+    volumeHandle: fs-0d2fb07ea1eb68ec2  # sustituye por tu FileSystemId
 
 ---
 # 3) PVC para el contenido PHP (subPath "pagina" en EFS)
