@@ -1,4 +1,26 @@
 ---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-aws
+provisioner: efs.csi.aws.com
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: php-pv
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-aws
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-00d4ad54ba0695ebe
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -6,13 +28,11 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: efs-aws
-  volumeName: php-pv
   resources:
     requests:
       storage: 1Gi
-
----
+  storageClassName: efs-aws
+  ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,26 +49,18 @@ spec:
     spec:
       containers:
         - name: php-fpm
-          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
+          image: 210486000475.dkr.ecr.us-east-1.amazonaws.com/php-fpm:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 9000
           volumeMounts:
-            - name: php-storage
-              mountPath: /var/www/html
-              subPath: pagina
-            - name: ftp-storage
-              mountPath: /home/ftpusers/shared
-              subPath: ftp
+            - mountPath: /var/www/html
+              name: php-storage
       volumes:
         - name: php-storage
           persistentVolumeClaim:
             claimName: php-pvc
-        - name: ftp-storage
-          persistentVolumeClaim:
-            claimName: ftp-pvc
-
----
+            ---
 apiVersion: v1
 kind: Service
 metadata:
