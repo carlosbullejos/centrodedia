@@ -82,18 +82,13 @@
         src: "{{ templates_dir }}/Dockerfile_mysql2.j2"
         dest: "{{ build_root }}/mysql/Dockerfile"
         mode: "0644"
-
-    - name: Create apache build context
-      ansible.builtin.file:
-        path: "{{ build_root }}/apache"
-        state: directory
-        mode: "0755"
-
-    - name: Template Apache Dockerfile
-      ansible.builtin.template:
-        src: "{{ templates_dir }}/Dockerfile_apache.j2"
-        dest: "{{ build_root }}/apache/Dockerfile"
+    - name: Copy vsftpd virtual users
+      ansible.builtin.copy:
+        src: "{{ templates_dir }}/entrypoint.sh"
+        dest: "{{ build_root }}/ftp/entrypoint.sh"
         mode: "0644"
+
+  
 
     - name: Create ftp build context
       ansible.builtin.file:
