@@ -93,12 +93,16 @@ resource "aws_instance" "app_server" {
     volume_size = var.root_volume_size
   }
 
-  user_data = "../../modules/ec2/user_data.sh.tpl", {
-    cluster_name    = var.cluster_name
-    region          = var.region
-    efs_id          = module.efs.efs_id
-    efs_mount_point = "/mnt/efs"
-  })
+  user_data = templatefile(
+    "${path.module}/ec2/user_data.sh.tpl",
+    {
+      cluster_name    = var.cluster_name
+      region          = var.region
+      efs_id          = module.efs.efs_id
+      efs_mount_point = "/mnt/efs"
+    }
+  )
+
   tags = {
     Name = "app-server"
   }
@@ -108,3 +112,4 @@ resource "aws_instance" "app_server" {
     module.efs,
   ]
 }
+
