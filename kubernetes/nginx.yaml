@@ -1,5 +1,5 @@
 ---
-# 1) PVC para el contenido PHP
+# 1) PVC para el contenido PHP (usado por NGINX)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -7,7 +7,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: efs-aws        # <- aquí cambiamos a efs-aws
+  storageClassName: efs-aws
+  volumeName: php-pv           # ← enlaza al PV estático php-pv
   resources:
     requests:
       storage: 1Gi
