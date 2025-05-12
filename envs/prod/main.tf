@@ -94,7 +94,7 @@ resource "aws_instance" "app_server" {
   }
 
   user_data = templatefile(
-    "${path.module}/ec2/user_data.sh.tpl",
+    "${path.module}/user_data.sh.tpl",
     {
       cluster_name    = var.cluster_name
       region          = var.region
