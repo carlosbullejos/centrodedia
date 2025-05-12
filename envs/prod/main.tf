@@ -1,5 +1,6 @@
+// main.tf
 ###############################################################################
-# 1) Providers and Variables
+# 1) Providers & Variables
 ###############################################################################
 variable "region" {
   description = "AWS region"
@@ -10,9 +11,12 @@ variable "region" {
 variable "root_volume_size" {
   description = "Size of the root EBS volume (GiB)"
   type        = number
-  default     = 10
+  default     = 20
 }
 
+provider "aws" {
+  region = var.region
+}
 
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
@@ -21,7 +25,7 @@ provider "kubernetes" {
 }
 
 ###############################################################################
-# 2) Infrastructure Modules
+# 2) Módulos de Infraestructura
 ###############################################################################
 module "network" {
   source              = "../../modules/network"
@@ -76,7 +80,7 @@ data "aws_s3_bucket" "backup" {
 }
 
 ###############################################################################
-# 4) EC2 Instance with User Data
+# 4) EC2 para control y montaje
 ###############################################################################
 resource "aws_instance" "app_server" {
   ami                    = var.ami_id
@@ -89,7 +93,7 @@ resource "aws_instance" "app_server" {
     volume_size = var.root_volume_size
   }
 
-  user_data = templatefile(file("${path.module}/user_data.sh.tpl"), {
+  user_data = templatefile("${path.module}/user_data.sh.tpl", {
     cluster_name    = var.cluster_name
     region          = var.region
     efs_id          = module.efs.efs_id
@@ -100,5 +104,8 @@ resource "aws_instance" "app_server" {
     Name = "app-server"
   }
 
-  depends_on = [module.eks, module.efs]
+  depends_on = [
+    module.eks,
+    module.efs,
+  ]
 }
