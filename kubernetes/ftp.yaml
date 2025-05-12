@@ -28,8 +28,8 @@ spec:
     spec:
       containers:
         - name: vsftpd
-          image: ftpcarlos
-          imagePullPolicy: IfNotPresent
+           image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:ftpcarlos
+          imagePullPolicy: Always
           ports:
             - containerPort: 21
             - containerPort: 21100
