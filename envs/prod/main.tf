@@ -93,7 +93,7 @@ resource "aws_instance" "app_server" {
     volume_size = var.root_volume_size
   }
 
-  user_data = ec2/user_data.sh.tpl", {
+  user_data = "ec2/user_data.sh.tpl", {
     cluster_name    = var.cluster_name
     region          = var.region
     efs_id          = module.efs.efs_id
