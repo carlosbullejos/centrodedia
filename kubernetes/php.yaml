@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
         - name: php-fpm
-          image: 210486000475.dkr.ecr.us-east-1.amazonaws.com/php-fpm:latest
+          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
           imagePullPolicy: Always
           ports:
             - containerPort: 9000
