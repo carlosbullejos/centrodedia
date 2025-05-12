@@ -5,15 +5,13 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: ""   # Deshabilita el provisioner dinámico
-  volumeName: ftp-pv     # Enlaza al PV estático llamado ftp-pv
+  storageClassName: efs-aws
+  volumeName: ftp-pv
   resources:
     requests:
       storage: 1Gi
 
-
 ---
-# 2) Deployment de FTP usando subPath para mapear /ftp del EFS
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,25 +41,24 @@ spec:
               value: "ftppass"
             - name: PASV_ENABLE
               value: "YES"
-            - name: PASV_MIN_PORT"
+            - name: PASV_MIN_PORT
               value: "21100"
-            - name: PASV_MAX_PORT"
+            - name: PASV_MAX_PORT
               value: "21101"
             - name: PASV_ADDRESS
-              value: vsftpd
+              value: "vsftpd"
             - name: LOG_STDOUT
               value: "YES"
           volumeMounts:
             - name: ftp-storage
               mountPath: /home/ftpusers/shared
-              subPath: ftp    # monta el subdirectorio "ftp" del EFS
+              subPath: ftp
       volumes:
         - name: ftp-storage
           persistentVolumeClaim:
             claimName: ftp-pvc
 
 ---
-# 3) Service de FTP
 apiVersion: v1
 kind: Service
 metadata:
