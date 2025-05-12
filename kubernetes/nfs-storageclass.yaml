@@ -3,7 +3,6 @@ kind: StorageClass
 metadata:
   name: efs-aws
 provisioner: efs.csi.aws.com
-volumeBindingMode: WaitForFirstConsumer
 reclaimPolicy: Retain
 
 ---
