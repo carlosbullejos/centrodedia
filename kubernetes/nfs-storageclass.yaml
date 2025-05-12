@@ -10,7 +10,7 @@ volumeBindingMode: WaitForFirstConsumer
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: efs-pv
+  name: ftp-pv
 spec:
   capacity:
     storage: 10Gi
@@ -20,4 +20,34 @@ spec:
   storageClassName: efs-aws
   csi:
     driver: efs.csi.aws.com
-    volumeHandle: fs-0d2fb07ea1eb68ec2   # <- tu FileSystemId
+    volumeHandle: fs-0dcf013be3156998c   # tu FileSystemId
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: php-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-aws
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0dcf013be3156998c
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-aws
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0dcf013be3156998c
