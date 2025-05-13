@@ -14,6 +14,7 @@ spec:
   csi:
     driver: efs.csi.aws.com
     volumeHandle: fs-0d8751a243da0e763
+
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -26,6 +27,20 @@ spec:
     requests:
       storage: 1Gi
   storageClassName: efs-aws
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ftp-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: efs-aws
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -50,10 +65,16 @@ spec:
           volumeMounts:
             - name: php-storage
               mountPath: /var/www/html
+            - name: ftp-storage
+              mountPath: /home/ftpusers/shared
       volumes:
         - name: php-storage
           persistentVolumeClaim:
             claimName: php-pvc
+        - name: ftp-storage
+          persistentVolumeClaim:
+            claimName: ftp-pvc
+
 ---
 apiVersion: v1
 kind: Service
