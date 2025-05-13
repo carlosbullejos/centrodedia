@@ -47,17 +47,6 @@
         dest: "{{ build_root }}/nginx/server.conf"
         mode: "0644"
 
-    - name: Copy fullchain.pem
-      ansible.builtin.copy:
-        src: "{{ templates_dir }}/fullchain.pem"
-        dest: "{{ build_root }}/nginx/fullchain.pem"
-        mode: "0644"
-
-    - name: Copy private.key
-      ansible.builtin.copy:
-        src: "{{ templates_dir }}/private.key"
-        dest: "{{ build_root }}/nginx/private.key"
-        mode: "0600"
 
     - name: Create php_fpm build context
       ansible.builtin.file:
