@@ -83,11 +83,11 @@ data "aws_s3_bucket" "backup" {
 # 4) EC2 para control y montaje
 ###############################################################################
 resource "aws_instance" "app_server" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  subnet_id              = module.network.subnet_ids[0]
-  vpc_security_group_ids = [module.security.ec2_app_sg_id]
-  key_name               = var.ssh_key_name
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  subnet_id                   = module.network.subnet_ids[0]
+  vpc_security_group_ids      = [module.security.ec2_app_sg_id]
+  key_name                    = var.ssh_key_name
 
   root_block_device {
     volume_size = var.root_volume_size
@@ -100,6 +100,9 @@ resource "aws_instance" "app_server" {
       region          = var.region
       efs_id          = module.efs.efs_id
       efs_mount_point = "/mnt/efs"
+      aws_access_key_id     = var.aws_access_key_id      
+      aws_secret_access_key = var.aws_secret_access_key   
+      aws_session_token     = var.aws_session_token      
     }
   )
 
@@ -112,4 +115,5 @@ resource "aws_instance" "app_server" {
     module.efs,
   ]
 }
+
 
