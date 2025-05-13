@@ -1,19 +1,4 @@
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: php-pv
-spec:
-  capacity:
-    storage: 1Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: efs-aws
-  csi:
-    driver: efs.csi.aws.com
-    volumeHandle: fs-0d8751a243da0e763
+
 
 ---
 apiVersion: v1
