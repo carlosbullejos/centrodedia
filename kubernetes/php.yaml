@@ -50,15 +50,12 @@ spec:
           volumeMounts:
             - name: php-storage
               mountPath: /var/www/html
-            - name: ftp-storage
-              mountPath: /home/ftpuser/shared
+         
       volumes:
         - name: php-storage
           persistentVolumeClaim:
             claimName: php-pvc
-        - name: ftp-storage
-          persistentVolumeClaim:
-            claimName: ftp-pvc
+        
 ---
 apiVersion: v1
 kind: Service
