@@ -29,10 +29,7 @@ done
 aws eks update-kubeconfig --name "${cluster_name}" --region "${region}"
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 
-# 5) Espera a que los pods CSI estén listos
-kubectl wait --for=condition=Ready pods \
-  -l app.kubernetes.io/name=aws-efs-csi-driver -n kube-system \
-  --timeout=600s
+
 
 # 6) Monta tu EFS en la EC2 y prepara carpetas
 sudo mkdir -p ${efs_mount_point}
