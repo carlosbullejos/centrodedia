@@ -72,18 +72,6 @@
         dest: "{{ build_root }}/mysql/Dockerfile"
         mode: "0644"
 
-    - name: Create apache build context
-      ansible.builtin.file:
-        path: "{{ build_root }}/apache"
-        state: directory
-        mode: "0755"
-
-    - name: Template Apache Dockerfile
-      ansible.builtin.template:
-        src: "{{ templates_dir }}/Dockerfile_apache.j2"
-        dest: "{{ build_root }}/apache/Dockerfile"
-        mode: "0644"
-
     - name: Create ftp build context
       ansible.builtin.file:
         path: "{{ build_root }}/ftp"
