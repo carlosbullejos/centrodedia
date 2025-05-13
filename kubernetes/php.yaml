@@ -6,23 +6,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
+  storageClassName: efs-aws
   resources:
     requests:
       storage: 1Gi
-  storageClassName: efs-aws
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ftp-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: efs-aws
 
 ---
 apiVersion: apps/v1
@@ -56,7 +43,7 @@ spec:
             claimName: php-pvc
         - name: ftp-storage
           persistentVolumeClaim:
-            claimName: ftp-pvc
+            claimName: ftp-pvc  # <-- referenciamos el PVC definido en FTP.yaml
 
 ---
 apiVersion: v1
