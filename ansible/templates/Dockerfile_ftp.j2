@@ -5,9 +5,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copiamos configuración y el entrypoint
-COPY vsftpd.conf /etc/vsftpd.conf
-COPY vsftpd_virtual /etc/pam.d/vsftpd_virtual
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY vsftpd.conf         /etc/vsftpd.conf
+COPY vsftpd_virtual      /etc/pam.d/vsftpd_virtual
+COPY entrypoint.sh       /usr/local/bin/entrypoint.sh
+
+# Aseguramos que entrypoint.sh sea ejecutable
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Ponemos el script como entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
@@ -17,4 +20,3 @@ CMD ["/usr/sbin/vsftpd", "/etc/vsftpd.conf"]
 
 # Exponemos puertos
 EXPOSE 20 21 21100-21110
-
