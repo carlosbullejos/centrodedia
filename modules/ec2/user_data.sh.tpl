@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo yum install -y amazon-efs-utils aws-cli jq git
 sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl && mv kubectl /usr/local/bin/
+sudo chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
 cat <<EOF >> ~/.bashrc
 export AWS_ACCESS_KEY_ID="ASIA3UPEZJ42QPI76WWS"
