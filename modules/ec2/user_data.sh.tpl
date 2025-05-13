@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # 1) Instala herramientas necesarias
-yum install -y amazon-efs-utils aws-cli jq
+sudo yum install -y amazon-efs-utils aws-cli jq
 
 # 2) Instala kubectl
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
