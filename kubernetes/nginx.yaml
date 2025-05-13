@@ -22,7 +22,7 @@ spec:
           volumeMounts:
             - name: php-storage
               mountPath: /var/www/html
-              subPath: pagina
+             
       volumes:
         - name: php-storage
           persistentVolumeClaim:
