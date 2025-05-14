@@ -29,6 +29,8 @@ sudo mount -t efs -o tls ${efs_id}:/ ${efs_mount_point}
 sudo bash -c "echo \"${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0\" >> /etc/fstab"
 sudo mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
 sudo chmod -R 777 /mnt/efs
+sudo umount -a
+sudo mount -a
 yum install -y openssh-server
 systemctl enable sshd
 systemctl start sshd
