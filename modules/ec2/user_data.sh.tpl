@@ -25,7 +25,7 @@ aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 
 sudo mkdir -p ${efs_mount_point}
-sudo mount -t efs ${efs_id}:/ ${efs_mount_point}
+sudo mount -t efs -o tls ${efs_id}:/ ${efs_mount_point}
 sudo bash -c "echo \"${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0\" >> /etc/fstab"
 sudo mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
 sudo chmod -R 777 /mnt/efs
