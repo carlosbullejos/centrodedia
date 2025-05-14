@@ -18,6 +18,7 @@ until aws eks describe-cluster --name "${cluster_name}" --region "${region}" \
 done
 
 aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
+sed -i 's|client.authentication.k8s.io/v1alpha1|client.authentication.k8s.io/v1beta1|g' /root/.kube/config
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 
 sudo mkdir -p ${efs_mount_point}
