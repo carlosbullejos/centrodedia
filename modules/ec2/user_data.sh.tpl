@@ -1,5 +1,5 @@
 #!/bin/bash
-
+sudo su
 cat << 'EOF' >> ~/.bashrc
 export AWS_ACCESS_KEY_ID="ASIA3UPEZJ42WJRQTXVJ"
 export AWS_SECRET_ACCESS_KEY="4x1vz9wDPfX3EPM//pOCZof/NXXfXXUX0hkeGeqW"
