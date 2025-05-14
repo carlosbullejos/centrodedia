@@ -33,5 +33,3 @@ sudo chmod -R 777 /mnt/efs
 yum install -y openssh-server
 systemctl enable sshd
 systemctl start sshd
-umount -a
-mount -a
