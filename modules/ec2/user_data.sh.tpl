@@ -10,25 +10,25 @@ EOF
 source ~/.bashrc
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
 unzip -q /tmp/awscliv2.zip -d /tmp
-sudo /tmp/aws/install --install-dir /usr/aws-cli --bin-dir /usr/bin --update
+/tmp/aws/install --install-dir /usr/aws-cli --bin-dir /usr/bin --update
 rm -rf /tmp/awscliv2.zip /tmp/aws
 
 
-sudo yum install -y amazon-efs-utils jq git
+yum install -y amazon-efs-utils jq git
 
-sudo curl -fsSL "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+curl -fsSL "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
      -o /usr/local/bin/kubectl
-sudo chmod +x /usr/local/bin/kubectl
+chmod +x /usr/local/bin/kubectl
 
 
 aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 
-sudo mkdir -p ${efs_mount_point}
-sudo mount -t efs -o tls ${efs_id}:/ ${efs_mount_point}
-sudo bash -c "echo \"${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0\" >> /etc/fstab"
-sudo mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
-sudo chmod -R 777 /mnt/efs
+mkdir -p ${efs_mount_point}
+mount -t efs -o tls ${efs_id}:/ ${efs_mount_point}
+bash -c "echo \"${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0\" >> /etc/fstab"
+mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
+chmod -R 777 /mnt/efs
 
 yum install -y openssh-server
 systemctl enable sshd
