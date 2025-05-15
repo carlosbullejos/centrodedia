@@ -1,4 +1,6 @@
 ---
+
+# Asegúrate de que este PVC ya existe y está Bound
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -10,7 +12,9 @@ spec:
     requests:
       storage: 1Gi
   storageClassName: efs-aws
+
 ---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,7 +29,7 @@ spec:
       labels:
         app: php-fpm
     spec:
-      # Opcional: corre como www-data
+      # Corre como www-data
       securityContext:
         runAsUser: 33
       initContainers:
@@ -35,7 +39,8 @@ spec:
           - sh
           - -c
           - |
-            echo "↪ Ajustando permisos en /var/www/html…"
+            echo "↪ Creando carpeta y ajustando permisos…"
+            mkdir -p /var/www/html
             chown -R 33:33 /var/www/html
             chmod -R 2775 /var/www/html
         volumeMounts:
@@ -54,7 +59,9 @@ spec:
       - name: php-storage
         persistentVolumeClaim:
           claimName: php-pvc
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
