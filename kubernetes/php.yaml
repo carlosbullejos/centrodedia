@@ -1,5 +1,20 @@
 ---
-# 1) PVC para PHP
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: php-pv
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-aws
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0c8a0064a653f4fba
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -26,20 +41,21 @@ spec:
       labels:
         app: php-fpm
     spec:
-      securityContext:
-        runAsUser: 33     # UID www-data
-        fsGroup:   33     # GID www-data
       containers:
-      - name: php-fpm
-        image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
-        volumeMounts:
-        - name: php-storage
-          mountPath: /var/www/html
+        - name: php-fpm
+          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - name: php-storage
+              mountPath: /var/www/html
+         
       volumes:
-      - name: php-storage
-        hostPath:
-          path: /mnt/efs   # el mount point real del nodo
-          type: Directory
+        - name: php-storage
+          persistentVolumeClaim:
+            claimName: php-pvc
+        
 ---
 apiVersion: v1
 kind: Service
@@ -49,9 +65,8 @@ spec:
   selector:
     app: php-fpm
   ports:
-    - port: 9000
-      targetPort: 9000
+    - name: php-fpm-port
       protocol: TCP
-      name: php-fpm-port
+      port: 9000
+      targetPort: 9000
   type: ClusterIP
-
