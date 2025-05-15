@@ -11,7 +11,6 @@ spec:
   resources:
     requests:
       storage: 5Gi
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -69,7 +68,6 @@ EOF
         volumeMounts:
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d
-
       containers:
       - name: mysql
         image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
@@ -85,14 +83,12 @@ EOF
           subPath: mysql
         - name: init-scripts
           mountPath: /docker-entrypoint-initdb.d
-
       volumes:
       - name: mysql-storage
         persistentVolumeClaim:
           claimName: mysql-pvc
       - name: init-scripts
         emptyDir: {}
-
 ---
 apiVersion: v1
 kind: Service
