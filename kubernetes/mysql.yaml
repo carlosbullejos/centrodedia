@@ -1,5 +1,4 @@
 ---
-# 1) PVC para MySQL
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -14,7 +13,6 @@ spec:
       storage: 5Gi
 
 ---
-# 2) Deployment de MySQL con initContainer para crear el usuario admin
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,7 +58,7 @@ VALUES (
   'Administrador',
   'admin@gmail.com',
   '${ADMIN_HASH}',
-  'ftp_admin_passwd',
+  'admin',
   'admin'
 )
 ON DUPLICATE KEY UPDATE
@@ -96,7 +94,6 @@ EOF
         emptyDir: {}
 
 ---
-# 3) Service para exponer MySQL
 apiVersion: v1
 kind: Service
 metadata:
