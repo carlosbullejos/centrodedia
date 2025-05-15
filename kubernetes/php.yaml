@@ -26,6 +26,9 @@ spec:
       labels:
         app: php-fpm
     spec:
+      securityContext:
+          runAsUser: 33    
+          fsGroup: 33 
       containers:
         - name: php-fpm
           image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
