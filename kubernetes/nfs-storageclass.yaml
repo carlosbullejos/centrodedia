@@ -4,6 +4,15 @@ metadata:
   name: efs-aws
 provisioner: efs.csi.aws.com
 reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+mountOptions:
+  - tls
+  - dmode=2775
+  - fmode=0664
+parameters:
+  fileSystemId: fs-0c8a0064a653f4fba   # tu FileSystemId
+  directoryPerms: "2775"
+  provisioningMode: efs-ap
 
 ---
 apiVersion: v1
