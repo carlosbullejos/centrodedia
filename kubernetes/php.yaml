@@ -11,9 +11,7 @@ spec:
     requests:
       storage: 1Gi
   storageClassName: efs-aws
-
 ---
-# 2) Deployment de PHP-FPM con initContainer para corregir permisos
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,50 +26,21 @@ spec:
       labels:
         app: php-fpm
     spec:
-      # Corre como www-data
       securityContext:
-        runAsUser: 33
-      initContainers:
-        - name: fix-perms
-          image: busybox:1.35.0
-          command:
-            - sh
-            - -c
-            - |
-              set -e
-              echo "↪ Esperando a que /var/www/html esté montado…"
-              for i in $(seq 1 30); do
-                if [ -d /var/www/html ]; then
-                  echo "  ✅ /var/www/html montado"
-                  break
-                fi
-                sleep 1
-              done
-              echo "↪ Ajustando dueño y permisos…"
-              mkdir -p /var/www/html
-              chown -R 33:33 /var/www/html 2>/dev/null || true
-              chmod -R 2775 /var/www/html 2>/dev/null || true
-              echo "↪ InitContainer completado"
-              exit 0
-          volumeMounts:
-            - name: php-storage
-              mountPath: /var/www/html
+        runAsUser: 33     # UID www-data
+        fsGroup:   33     # GID www-data
       containers:
-        - name: php-fpm
-          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 9000
-          volumeMounts:
-            - name: php-storage
-              mountPath: /var/www/html
-      volumes:
+      - name: php-fpm
+        image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
+        volumeMounts:
         - name: php-storage
-          persistentVolumeClaim:
-            claimName: php-pvc
-
+          mountPath: /var/www/html
+      volumes:
+      - name: php-storage
+        hostPath:
+          path: /mnt/efs   # el mount point real del nodo
+          type: Directory
 ---
-# 3) Service para exponer PHP-FPM
 apiVersion: v1
 kind: Service
 metadata:
@@ -80,8 +49,9 @@ spec:
   selector:
     app: php-fpm
   ports:
-    - name: php-fpm-port
-      protocol: TCP
-      port: 9000
+    - port: 9000
       targetPort: 9000
+      protocol: TCP
+      name: php-fpm-port
   type: ClusterIP
+
