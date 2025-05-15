@@ -20,6 +20,9 @@ curl -fsSL "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/sta
      -o /usr/local/bin/kubectl
 chmod +x /usr/local/bin/kubectl
 
+cp /usr/local/bin/kubectl /usr/bin/kubectl
+chmod 755 /usr/bin/kubectl
+chown root:root /usr/bin/kubectl
 
 aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
