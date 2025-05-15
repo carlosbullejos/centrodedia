@@ -11,8 +11,8 @@ spec:
   resources:
     requests:
       storage: 5Gi
-      
----      
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,7 +27,7 @@ spec:
       labels:
         app: mysql
     spec:
-      # InitContainer que genera el SQL dinámicamente
+      # initContainer para generar init-users.sql dinámicamente
       initContainers:
         - name: generate-init-sql
           image: php:8.0-cli
@@ -43,10 +43,11 @@ spec:
             - -c
             - |
               set -e
-              # Generamos el hash BCRYPT con PHP
+              # Generar el hash bcrypt
               ADMIN_HASH=$(php -r "echo password_hash(getenv('MYSQL_ADMIN_PASSWORD'), PASSWORD_BCRYPT);")
+              # Crear script de inicialización
               cat <<EOF > /docker-entrypoint-initdb.d/init-users.sql
-              -- Crear tabla users
+              -- Crear tabla users si no existe
               CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nombre VARCHAR(100),
@@ -55,7 +56,7 @@ spec:
                 ftp_password VARCHAR(255),
                 rol ENUM('usuario','trabajador','alumno','admin') DEFAULT 'usuario'
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-              
+
               -- Insertar o actualizar usuario admin
               INSERT INTO users (nombre, email, password, ftp_password, rol)
               VALUES (
@@ -84,15 +85,29 @@ spec:
             - secretRef:
                 name: mysql-credentials
           volumeMounts:
-            # Volumen persistente de datos
             - name: mysql-storage
               mountPath: /var/lib/mysql
-            # Montamos también el init SQL (que el initContainer ya colocó ahí)
+              subPath: mysql
             - name: init-scripts
               mountPath: /docker-entrypoint-initdb.d
+
       volumes:
         - name: mysql-storage
           persistentVolumeClaim:
             claimName: mysql-pvc
         - name: init-scripts
           emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+  type: ClusterIP
