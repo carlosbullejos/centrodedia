@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS users (
 INSERT INTO users (nombre, email, password, ftp_password, rol)
 VALUES (
   'Administrador',
-  'admin@example.com',
+  'admin@gmail.com',
   '${ADMIN_HASH}',
   'ftp_admin_passwd',
   'admin'
