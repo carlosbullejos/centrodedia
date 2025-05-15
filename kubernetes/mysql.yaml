@@ -27,76 +27,73 @@ spec:
       labels:
         app: mysql
     spec:
-      # initContainer para generar init-users.sql dinámicamente
       initContainers:
-        - name: generate-init-sql
-          image: php:8.0-cli
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: MYSQL_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-credentials
-                  key: MYSQL_ADMIN_PASSWORD
-          command:
-            - sh
-            - -c
-            - |
-              set -e
-              # Generar el hash bcrypt
-              ADMIN_HASH=$(php -r "echo password_hash(getenv('MYSQL_ADMIN_PASSWORD'), PASSWORD_BCRYPT);")
-              # Crear script de inicialización
-              cat <<EOF > /docker-entrypoint-initdb.d/init-users.sql
-              -- Crear tabla users si no existe
-              CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nombre VARCHAR(100),
-                email VARCHAR(100) UNIQUE,
-                password VARCHAR(255),
-                ftp_password VARCHAR(255),
-                rol ENUM('usuario','trabajador','alumno','admin') DEFAULT 'usuario'
-              ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      - name: generate-init-sql
+        image: php:8.0-cli
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MYSQL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: MYSQL_ADMIN_PASSWORD
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+          # Generar el hash bcrypt
+          ADMIN_HASH=$(php -r "echo password_hash(getenv('MYSQL_ADMIN_PASSWORD'), PASSWORD_BCRYPT);")
+          # Crear script de inicialización con el hash real
+          cat <<EOF > /docker-entrypoint-initdb.d/init-users.sql
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100),
+  email VARCHAR(100) UNIQUE,
+  password VARCHAR(255),
+  ftp_password VARCHAR(255),
+  rol ENUM('usuario','trabajador','alumno','admin') DEFAULT 'usuario'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-              -- Insertar o actualizar usuario admin
-              INSERT INTO users (nombre, email, password, ftp_password, rol)
-              VALUES (
-                'Administrador',
-                'admin@example.com',
-                '\$ADMIN_HASH',
-                'ftp_admin_passwd',
-                'admin'
-              )
-              ON DUPLICATE KEY UPDATE
-                password = VALUES(password),
-                ftp_password = VALUES(ftp_password),
-                rol = VALUES(rol);
-              EOF
-          volumeMounts:
-            - name: init-scripts
-              mountPath: /docker-entrypoint-initdb.d
+INSERT INTO users (nombre, email, password, ftp_password, rol)
+VALUES (
+  'Administrador',
+  'admin@example.com',
+  '${ADMIN_HASH}',
+  'ftp_admin_passwd',
+  'admin'
+)
+ON DUPLICATE KEY UPDATE
+  password     = VALUES(password),
+  ftp_password = VALUES(ftp_password),
+  rol          = VALUES(rol);
+EOF
+        volumeMounts:
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
 
       containers:
-        - name: mysql
-          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 3306
-          envFrom:
-            - secretRef:
-                name: mysql-credentials
-          volumeMounts:
-            - name: mysql-storage
-              mountPath: /var/lib/mysql
-              subPath: mysql
-            - name: init-scripts
-              mountPath: /docker-entrypoint-initdb.d
+      - name: mysql
+        image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - secretRef:
+            name: mysql-credentials
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+          subPath: mysql
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
 
       volumes:
-        - name: mysql-storage
-          persistentVolumeClaim:
-            claimName: mysql-pvc
-        - name: init-scripts
-          emptyDir: {}
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: init-scripts
+        emptyDir: {}
 
 ---
 apiVersion: v1
@@ -107,7 +104,7 @@ spec:
   selector:
     app: mysql
   ports:
-    - name: mysql
-      port: 3306
-      targetPort: 3306
+  - name: mysql
+    port: 3306
+    targetPort: 3306
   type: ClusterIP
