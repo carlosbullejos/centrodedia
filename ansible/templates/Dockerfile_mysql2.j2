@@ -1,38 +1,38 @@
-# Dockerfile
-# = Etapa “builder”: generamos el hash con PHP-CLI =
+# Etapa builder: genera el hash con PHP
 FROM php:8.1-cli AS builder
 
 ARG ADMIN_PASS=admin
-# Generamos y guardamos el hash de ADMIN_PASS
 RUN php -r "file_put_contents('/tmp/admin_hash', password_hash(getenv('ADMIN_PASS'), PASSWORD_DEFAULT));"
 
-# = Imagen final: MySQL puro =
+# Imagen final: MySQL
 FROM mysql:8.0
 
-# Variables por defecto (puedes sobreescribirlas con env en K8s)
+# Variables por defecto (se pueden sobreescribir desde Kubernetes o --build-arg)
 ARG MYSQL_DATABASE=mi_basedatos
 ARG ADMIN_EMAIL=admin@centrodiabullejos.com
+ARG ADMIN_PASS=admin
 
-# Exponemos el puerto por convención
+ENV MYSQL_DATABASE=${MYSQL_DATABASE}
+ENV ADMIN_EMAIL=${ADMIN_EMAIL}
+ENV ADMIN_PASS=${ADMIN_PASS}
+
 EXPOSE 3306
 
-# 1) Copiamos el esquema (base de datos + tablas) como 00-schema.sql
+# Copiar SQL de esquema (tablas y base de datos)
 COPY init.sql /docker-entrypoint-initdb.d/00-schema.sql
 
-# 2) Traemos el hash generado
+# Copiar el hash generado desde el builder
 COPY --from=builder /tmp/admin_hash /tmp/admin_hash
 
-# 3) Creamos un script SQL idempotente que inserta el admin solo si no existe
+# Generar el script de inserción del admin (sin heredoc)
 RUN ADMIN_HASH="$(cat /tmp/admin_hash)" && \
-    cat <<EOF > /docker-entrypoint-initdb.d/01-admin-user.sql
-USE \`${MYSQL_DATABASE}\`;
+    echo "USE \`${MYSQL_DATABASE}\`;" > /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "INSERT INTO users (nombre, email, password, ftp_password, rol)" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "SELECT 'admin', '${ADMIN_EMAIL}', '${ADMIN_HASH}', '${ADMIN_PASS}', 'admin'" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "FROM DUAL" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "WHERE NOT EXISTS (" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "  SELECT 1 FROM users WHERE email='${ADMIN_EMAIL}'" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo ");" >> /docker-entrypoint-initdb.d/01-admin-user.sql
 
-INSERT INTO users (nombre, email, password, ftp_password, rol)
-SELECT 'admin', '${ADMIN_EMAIL}', '${ADMIN_HASH}', 'admin', 'admin'
-FROM DUAL
-WHERE NOT EXISTS (
-  SELECT 1 FROM users WHERE email='${ADMIN_EMAIL}'
-);
-EOF
-
-# No tocamos ENTRYPOINT/CMD: usamos el de mysql:8.0 (arranca mysqld y aplica init.d)
+# Usamos ENTRYPOINT/CMD originales de mysql:8.0
