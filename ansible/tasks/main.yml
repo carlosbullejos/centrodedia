@@ -157,10 +157,18 @@
         && docker push {{ ecr_registry }}/imagenes:php-fpm
 
     - name: Build & push MySQL image
-      ansible.builtin.shell: |
-        docker build -t mysql-carlosbullejos {{ build_root }}/mysql \
-        && docker tag mysql-carlosbullejos {{ ecr_registry }}/imagenes:mysql \
-        && docker push {{ ecr_registry }}/imagenes:mysql
+  ansible.builtin.shell: |
+    docker build \
+      -t mysql-carlosbullejos \
+      --build-arg ADMIN_PASS=admin \
+      --build-arg ADMIN_EMAIL=admin@centrodiabullejos.com \
+      --build-arg MYSQL_DATABASE=mi_basedatos \
+      {{ build_root }}/mysql \
+    && docker tag mysql-carlosbullejos {{ ecr_registry }}/imagenes:mysql \
+    && docker push {{ ecr_registry }}/imagenes:mysql
+  args:
+    executable: /bin/bash
+
 
 
     - name: Build & push FTP image
