@@ -1,4 +1,38 @@
-FROM mysql:8.4
+# Dockerfile
+# = Etapa “builder”: generamos el hash con PHP-CLI =
+FROM php:8.1-cli AS builder
 
+ARG ADMIN_PASS=admin
+# Generamos y guardamos el hash de ADMIN_PASS
+RUN php -r "file_put_contents('/tmp/admin_hash', password_hash(getenv('ADMIN_PASS'), PASSWORD_DEFAULT));"
+
+# = Imagen final: MySQL puro =
+FROM mysql:8.0
+
+# Variables por defecto (puedes sobreescribirlas con env en K8s)
+ARG MYSQL_DATABASE=mi_basedatos
+ARG ADMIN_EMAIL=admin@centrodiabullejos.com
+
+# Exponemos el puerto por convención
 EXPOSE 3306
-CMD ["mysqld"]
+
+# 1) Copiamos el esquema (base de datos + tablas) como 00-schema.sql
+COPY init.sql /docker-entrypoint-initdb.d/00-schema.sql
+
+# 2) Traemos el hash generado
+COPY --from=builder /tmp/admin_hash /tmp/admin_hash
+
+# 3) Creamos un script SQL idempotente que inserta el admin solo si no existe
+RUN ADMIN_HASH="$(cat /tmp/admin_hash)" && \
+    cat <<EOF > /docker-entrypoint-initdb.d/01-admin-user.sql
+USE \`${MYSQL_DATABASE}\`;
+
+INSERT INTO users (nombre, email, password, ftp_password, rol)
+SELECT 'admin', '${ADMIN_EMAIL}', '${ADMIN_HASH}', 'admin', 'admin'
+FROM DUAL
+WHERE NOT EXISTS (
+  SELECT 1 FROM users WHERE email='${ADMIN_EMAIL}'
+);
+EOF
+
+# No tocamos ENTRYPOINT/CMD: usamos el de mysql:8.0 (arranca mysqld y aplica init.d)
