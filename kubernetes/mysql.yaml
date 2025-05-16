@@ -1,4 +1,6 @@
 ---
+# 1) PVC para MySQL (se enlaza al PV mysql-pv si lo tienes estático,
+#    o bien será provisionado dinámicamente si usas un StorageClass)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -11,7 +13,9 @@ spec:
   resources:
     requests:
       storage: 5Gi
+
 ---
+# 2) Deployment de MySQL
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,48 +30,6 @@ spec:
       labels:
         app: mysql
     spec:
-      initContainers:
-      - name: generate-init-sql
-        image: php:8.0-cli
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: MYSQL_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-credentials
-              key: MYSQL_ADMIN_PASSWORD
-        command:
-        - sh
-        - -c
-        - |
-          set -e
-          ADMIN_HASH=$(php -r "echo password_hash(getenv('MYSQL_ADMIN_PASSWORD'), PASSWORD_BCRYPT);")
-          cat <<EOF > /docker-entrypoint-initdb.d/init-users.sql
-CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100),
-  email VARCHAR(100) UNIQUE,
-  password VARCHAR(255),
-  ftp_password VARCHAR(255),
-  rol ENUM('usuario','trabajador','alumno','admin') DEFAULT 'usuario'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO users (nombre, email, password, ftp_password, rol)
-VALUES (
-  'Administrador',
-  'admin@gmail.com',
-  '${ADMIN_HASH}',
-  'admin',
-  'admin'
-)
-ON DUPLICATE KEY UPDATE
-  password     = VALUES(password),
-  ftp_password = VALUES(ftp_password),
-  rol          = VALUES(rol);
-EOF
-        volumeMounts:
-        - name: init-scripts
-          mountPath: /docker-entrypoint-initdb.d
       containers:
       - name: mysql
         image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
@@ -81,15 +43,14 @@ EOF
         - name: mysql-storage
           mountPath: /var/lib/mysql
           subPath: mysql
-        - name: init-scripts
-          mountPath: /docker-entrypoint-initdb.d
+
       volumes:
       - name: mysql-storage
         persistentVolumeClaim:
           claimName: mysql-pvc
-      - name: init-scripts
-        emptyDir: {}
+
 ---
+# 3) Service para exponer MySQL
 apiVersion: v1
 kind: Service
 metadata:
