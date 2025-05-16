@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql-carlos:latest
+          image: mysql
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
