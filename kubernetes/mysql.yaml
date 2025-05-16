@@ -23,6 +23,8 @@ spec:
   resources:
     requests:
       storage: 5Gi
+  storageClassName: efs-aws 
+
 ---
 apiVersion: apps/v1
 kind: Deployment
