@@ -71,7 +71,16 @@
         src: "{{ templates_dir }}/Dockerfile_mysql2.j2"
         dest: "{{ build_root }}/mysql/Dockerfile"
         mode: "0644"
-
+    - name: Template MySQL Dockerfile
+      ansible.builtin.template:
+        src: "{{ templates_dir }}/docker-entrypoint.sh"
+        dest: "{{ build_root }}/mysql/docker-entrypoint.sh"
+        mode: "0644"
+    - name: Template MySQL Dockerfile
+      ansible.builtin.template:
+        src: "{{ templates_dir }}/init.sql"
+        dest: "{{ build_root }}/mysql/init.sql"
+        mode: "0644"
     - name: Create ftp build context
       ansible.builtin.file:
         path: "{{ build_root }}/ftp"
