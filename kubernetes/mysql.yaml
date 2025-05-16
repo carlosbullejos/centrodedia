@@ -1,21 +1,15 @@
+# mysql-deployment.yaml
 ---
-# 1) PVC para MySQL (se enlaza al PV mysql-pv si lo tienes estático,
-#    o bien será provisionado dinámicamente si usas un StorageClass)
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: ConfigMap
 metadata:
-  name: mysql-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-aws
-  volumeName: mysql-pv
-  resources:
-    requests:
-      storage: 5Gi
-
+  name: mysql-config
+data:
+  MYSQL_ROOT_PASSWORD: "my_passwd"
+  MYSQL_DATABASE:      "mi_basedatos"
+  ADMIN_PASS:          "admin"
+  ADMIN_EMAIL:         "admin@centrodiabullejos.com"
 ---
-# 2) Deployment de MySQL
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,26 +25,13 @@ spec:
         app: mysql
     spec:
       containers:
-      - name: mysql
-        image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 3306
-        envFrom:
-        - secretRef:
-            name: mysql-credentials
-        volumeMounts:
-        - name: mysql-storage
-          mountPath: /var/lib/mysql
-          subPath: mysql
-
-      volumes:
-      - name: mysql-storage
-        persistentVolumeClaim:
-          claimName: mysql-pvc
-
+        - name: mysql
+          image: mysql-carlos:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: mysql-config
 ---
-# 3) Service para exponer MySQL
 apiVersion: v1
 kind: Service
 metadata:
@@ -59,8 +40,5 @@ spec:
   selector:
     app: mysql
   ports:
-  - name: mysql
-    protocol: TCP
-    port: 3306
-    targetPort: 3306
-  type: ClusterIP
+    - port: 3306
+      targetPort: 3306
