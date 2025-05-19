@@ -1,18 +1,4 @@
-# ftp-deployment.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ftp-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-aws
-  volumeName: ftp-pv
-  resources:
-    requests:
-      storage: 1Gi
-
----
+# 2_ftp-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,13 +37,13 @@ spec:
             - name: LOG_STDOUT
               value: "YES"
           volumeMounts:
-            - name: ftp-storage
+            - name: shared-storage
               mountPath: /home/ftpusers/shared
               subPath: ftp
       volumes:
-        - name: ftp-storage
+        - name: shared-storage
           persistentVolumeClaim:
-            claimName: ftp-pvc
+            claimName: shared-pvc
 
 ---
 apiVersion: v1
