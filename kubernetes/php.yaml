@@ -1,29 +1,33 @@
-# 4_nginx-deployment.yaml
+# 3_php-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: carlos-web-deployment
+  name: php-fpm-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: carlos-web
+      app: php-fpm
   template:
     metadata:
       labels:
-        app: carlos-web
+        app: php-fpm
     spec:
       containers:
-        - name: carlos-web
-          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:carlos-web
+        - name: php-fpm
+          image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:php-fpm
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
-            - containerPort: 443
+            - containerPort: 9000
           volumeMounts:
+            # Código de la web
             - name: shared-storage
               mountPath: /var/www/html
               subPath: pagina
+            # Archivos subidos por FTP
+            - name: shared-storage
+              mountPath: /var/www/html/uploads
+              subPath: ftp
       volumes:
         - name: shared-storage
           persistentVolumeClaim:
@@ -33,17 +37,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-service
+  name: php-fpm-service
 spec:
   selector:
-    app: carlos-web
+    app: php-fpm
   ports:
-    - name: http
+    - name: php-fpm-port
       protocol: TCP
-      port: 80
-      targetPort: 80
-    - name: https
-      protocol: TCP
-      port: 443
-      targetPort: 443
-  type: LoadBalancer
+      port: 9000
+      targetPort: 9000
+  type: ClusterIP
