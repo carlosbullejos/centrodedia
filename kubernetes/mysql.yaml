@@ -1,4 +1,4 @@
-# mysql-deployment.yaml (actualizado)
+# mysql-deployment.yaml (shared EFS)
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -8,19 +8,6 @@ data:
   MYSQL_ROOT_PASSWORD: "my_passwd"
   MYSQL_DATABASE:      "mi_basedatos"
   ADMIN_EMAIL:         "admin@centrodiabullejos.com"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-aws
-  volumeName: mysql-pv       # ← Aquí vinculamos al PV correcto
-  resources:
-    requests:
-      storage: 5Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,6 +23,21 @@ spec:
       labels:
         app: mysql
     spec:
+      # 1) InitContainer para garantizar que exista /data/mysql en el EFS
+      initContainers:
+        - name: init-shared-storage
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /data/mysql
+              chmod -R 777 /data/mysql
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /data
+
+      # 2) Contenedor MySQL
       containers:
         - name: mysql
           image: 799880597301.dkr.ecr.us-east-1.amazonaws.com/imagenes:mysql
@@ -44,13 +46,15 @@ spec:
             - configMapRef:
                 name: mysql-config
           volumeMounts:
-            - name: mysql-data
+            - name: shared-storage
               mountPath: /var/lib/mysql
               subPath: mysql
+
+      # 3) Volumen compartido
       volumes:
-        - name: mysql-data
+        - name: shared-storage
           persistentVolumeClaim:
-            claimName: mysql-pvc
+            claimName: shared-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -60,5 +64,7 @@ spec:
   selector:
     app: mysql
   ports:
-    - port: 3306
+    - name: mysql
+      port: 3306
       targetPort: 3306
+  type: ClusterIP
