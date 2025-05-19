@@ -1,4 +1,4 @@
-# nginx-deployment.yaml
+# 4_nginx-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,13 +21,14 @@ spec:
             - containerPort: 80
             - containerPort: 443
           volumeMounts:
-            - name: php-storage
+            - name: shared-storage
               mountPath: /var/www/html
-              subPath: pagina    # sólo monta el directorio 'pagina' dentro de tu EFS
+              subPath: pagina
       volumes:
-        - name: php-storage
+        - name: shared-storage
           persistentVolumeClaim:
-            claimName: php-pvc   # mismo PVC que en tu PHP pod
+            claimName: shared-pvc
+
 ---
 apiVersion: v1
 kind: Service
