@@ -1,16 +1,12 @@
-# mysql-deployment.yaml
-
+# mysql-deployment.yaml (actualizado)
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysql-config
 data:
-  # Contraseña de root (puedes mover a Secret más adelante)
   MYSQL_ROOT_PASSWORD: "my_passwd"
-  # Nombre de la base (debe coincidir con ARG en Dockerfile o sobreescribirse)
   MYSQL_DATABASE:      "mi_basedatos"
-  # Datos del admin; ADMIN_PASS no se usa en runtime (solo en build), aquí solo ADMIN_EMAIL
   ADMIN_EMAIL:         "admin@centrodiabullejos.com"
 ---
 apiVersion: v1
@@ -19,12 +15,12 @@ metadata:
   name: mysql-pvc
 spec:
   accessModes:
-    - ReadWriteMany  
+    - ReadWriteMany
+  storageClassName: efs-aws
+  volumeName: mysql-pv       # ← Aquí vinculamos al PV correcto
   resources:
     requests:
       storage: 5Gi
-  storageClassName: efs-aws 
-
 ---
 apiVersion: apps/v1
 kind: Deployment
