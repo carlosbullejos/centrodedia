@@ -31,6 +31,21 @@ mount -t efs -o tls ${efs_id}:/ ${efs_mount_point}
 bash -c "echo \"${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0\" >> /etc/fstab"
 mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
 chmod -R 777 /mnt/efs
+
+
+REPO="https://github.com/carlosbullejos/centrodedia.git"
+DEST="${efs_mount_point}/pagina"
+BRANCH="kubernetes"
+
+if [ ! -d "$DEST/.git" ]; then
+  git clone --branch "$BRANCH" "$REPO" "$DEST"
+else
+  cd "$DEST"
+  git fetch origin "$BRANCH"
+  git reset --hard "origin/$BRANCH"
+fi
+
+
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 yum install -y openssh-server
 systemctl enable sshd
