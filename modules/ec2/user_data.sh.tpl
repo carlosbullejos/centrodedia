@@ -24,7 +24,6 @@ chmod 755 /usr/bin/kubectl
 chown root:root /usr/bin/kubectl
 
 aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
-sleep 10
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 
 mkdir -p ${efs_mount_point}
