@@ -37,11 +37,11 @@ spec:
             # Código de la web
             - name: php-storage
               mountPath: /var/www/html
-              subPath: pagina
+              
             # Archivos subidos por FTP
             - name: ftp-storage
-              mountPath: /var/www/html/uploads
-              subPath: ftp
+              mountPath: /tmp
+              
       volumes:
         - name: php-storage
           persistentVolumeClaim:
