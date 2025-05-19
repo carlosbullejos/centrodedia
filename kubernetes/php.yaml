@@ -1,18 +1,4 @@
-# php-deployment.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: php-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-aws
-  volumeName: php-pv
-  resources:
-    requests:
-      storage: 1Gi
-
----
+# 3_php-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,20 +21,17 @@ spec:
             - containerPort: 9000
           volumeMounts:
             # Código de la web
-            - name: php-storage
+            - name: shared-storage
               mountPath: /var/www/html
-              
+              subPath: pagina
             # Archivos subidos por FTP
-            - name: ftp-storage
-              mountPath: /tmp
-              
+            - name: shared-storage
+              mountPath: /var/www/html/uploads
+              subPath: ftp
       volumes:
-        - name: php-storage
+        - name: shared-storage
           persistentVolumeClaim:
-            claimName: php-pvc
-        - name: ftp-storage
-          persistentVolumeClaim:
-            claimName: ftp-pvc
+            claimName: shared-pvc
 
 ---
 apiVersion: v1
