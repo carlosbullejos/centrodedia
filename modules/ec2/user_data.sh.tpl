@@ -12,7 +12,6 @@ unzip -q /tmp/awscliv2.zip -d /tmp
 /tmp/aws/install --install-dir /usr/aws-cli --bin-dir /usr/bin --update
 rm -rf /tmp/awscliv2.zip /tmp/aws
 
-
 yum install -y amazon-efs-utils jq git
 
 curl -fsSL "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
@@ -35,3 +34,25 @@ kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernete
 yum install -y openssh-server
 systemctl enable sshd
 systemctl start sshd
+
+# ────────────────────────────────────────────────────────────────────
+# Sincronización automática con S3 cada 6 horas
+# ────────────────────────────────────────────────────────────────────
+
+# Crear el script de sync
+cat << 'SYNC' > /usr/local/bin/efs-to-s3.sh
+#!/bin/bash
+set -euo pipefail
+
+aws s3 sync /mnt/efs/mysql    s3://carlosbullejos-copiasdeseguridad/backups/mysql
+aws s3 sync /mnt/efs/ftp      s3://carlosbullejos-copiasdeseguridad/backups/ftp
+aws s3 sync /mnt/efs/pagina   s3://carlosbullejos-copiasdeseguridad/backups/pagina
+SYNC
+
+chmod +x /usr/local/bin/efs-to-s3.sh
+
+# Programar cron cada 6 horas
+# (0 * * * * sería cada hora, */6 cada 6 horas)
+# Programar cron cada minuto
+(crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/efs-to-s3.sh") | crontab -
+
