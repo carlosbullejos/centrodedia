@@ -34,7 +34,7 @@ kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernete
 yum install -y openssh-server
 systemctl enable sshd
 systemctl start sshd
-
+setfacl -R -m d:u::rwx,d:g::rwx,d:o::rwx /mnt/efs/pagina
 # ────────────────────────────────────────────────────────────────────
 # Sincronización automática con S3 cada 6 horas
 # ────────────────────────────────────────────────────────────────────
