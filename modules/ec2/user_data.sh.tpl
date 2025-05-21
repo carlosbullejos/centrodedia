@@ -25,16 +25,17 @@ chown root:root /usr/bin/kubectl
 aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
 
 mkdir -p ${efs_mount_point}
+mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
+setfacl -R -m d:u::rwx,d:g::rwx,d:o::rwx /mnt/efs/pagina
 mount -t efs -o tls ${efs_id}:/ ${efs_mount_point}
 bash -c "echo \"${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0\" >> /etc/fstab"
-mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
 chmod -R 777 /mnt/efs
 
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 yum install -y openssh-server
 systemctl enable sshd
 systemctl start sshd
-setfacl -R -m d:u::rwx,d:g::rwx,d:o::rwx /mnt/efs/pagina
+
 # ────────────────────────────────────────────────────────────────────
 # Sincronización automática con S3 cada 6 horas
 # ────────────────────────────────────────────────────────────────────
