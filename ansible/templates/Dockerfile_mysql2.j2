@@ -9,7 +9,7 @@ FROM mysql:8.0
 
 # Variables por defecto (se pueden sobreescribir desde Kubernetes o --build-arg)
 ARG MYSQL_DATABASE=mi_basedatos
-ARG ADMIN_EMAIL=admin@centrodiabullejos.com
+ARG ADMIN_EMAIL=admin@centrodiabullejos.es
 ARG ADMIN_PASS=admin
 
 ENV MYSQL_DATABASE=${MYSQL_DATABASE}
