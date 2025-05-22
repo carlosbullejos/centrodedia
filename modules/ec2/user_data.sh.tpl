@@ -1,10 +1,10 @@
 #!/bin/bash
 sudo su
 cat << 'EOF' >> ~/.bashrc
-export AWS_ACCESS_KEY_ID="ASIA3UPEZJ42R3JXPXLD"
-export AWS_SECRET_ACCESS_KEY="sbGESarZUICEvkfvBvLm2N4ru+ocRazNvemRr1c1"
+export AWS_ACCESS_KEY_ID="ASIA3UPEZJ42XK5IQXJP"
+export AWS_SECRET_ACCESS_KEY="ab2ufyCCXhH1l0CuX0makCi9kWR6mf1+oWCFzIRv"
 export AWS_DEFAULT_REGION="us-east-1"
-export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEAQaCXVzLXdlc3QtMiJHMEUCIQDFr4kt/P27uM/4Ia4t5KPYcGkUx9RbaxFRGYUCH1yOaQIgexuI9vIemQidIRQmKAX7INg7d8qmP4hVgY1qjCuyfW0qwAIIvf//////////ARACGgw3OTk4ODA1OTczMDEiDLsfzPffw/XxNYqQ8yqUAuBBsdkADsVQnNn540LvGRyykv5AKaQhhtJwLlhRT40Bg1yMtCyALnCfFXQs7pYJG2miHRcRm/ua2HS38lqyCq0xE+X7AtVIYds67tDZkMO4PqZsSQsoF5of6B1BNb9uZn0T9DC0gV5aGxMef0qD84lNDhumaDYbXNDgfDq5//e5bhs7yA5FRPbckcOAasEw+dF+MxwJ4b5EZL8ucBSHohpsA83K6ukM7bQ55Kbe9jX67UT/caCRzoRqnIyhgpy5o/+n523fJTqGPRa1uwZjet+n+XJtJQnuy0ZrgyaJBbRIeaNl1DKhNHlnWK9iUgH9BpPjYGltJ16V8e7sjJDMj8p8rTo3wT5EnSEI8vhApQPlO0I4HTC5hbfBBjqdAQgHKErSz4sYiL+/XiD9BstktrMcXRQoE6on3M0lqQS2gYx/Ek3lyeMnPwdHPiKb8tpkgRl/v9MLe4v4It6h18PZK28vymI5lE3FmXbpJR+Ho3rqUoZ262uE9gZa94+9bFipxRhuUkmkBfg/fsRIXwoJIY55rfZSDpLAqbrYNko3uoUtka4q8ra0VkD/9vRwTeGeMe76X3rco1rmPm4="
+export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEBYaCXVzLXdlc3QtMiJGMEQCIDl7OQr7Meah/LtxRZ+7XD3dV1XibN2BamGeZmxYsuN6AiA0Kq18LsiPNq6f05m8XRch31j7M036aWBjEe/5s+W/4irAAgjP//////////8BEAIaDDc5OTg4MDU5NzMwMSIMCfRSpUapQm0Pmq/jKpQCVWL6yv/1EExn6UBSPJLAavRKsiAKr//FHWHY6U3jCm2HvD1iNnPj5GPDDBI3i+xo28Wy9kSQTiYmKZU+pQCZ37qNrzuJ+Odo4Vxop5+rZ20N7Tg1WQZtsVSUcUUo5C5JA2mnvB9c8jJ8Hq+KTlbrIi5V5o1OMXPZe4nIodz+GcEBgRuW7l9dYctVgXcJjP/dGIAP154XaaHnlvWJlHfFrL8vrmMS4FMyokvhusnSw4FFMt1lrp2caT8sboAzVN8QuvgNzjwyHmD9oU1uojdANyKSTllrYzw9Ib6498oKFRLta8HnOfnJyJLkg6aK8uzgb/YyT/QyQZ5c+jl2m2atlYECRYNrFA/wRCDulY5UNZ3zQRkfMOr7usEGOp4Bd1214EVugH19X9hNSno9vvsYblG2qfj514veEazrxuYkqCB4hiX2CzO6wfD+ZBiKTDyPr2+R/hAj+8kkjEeWiL2lVWBi7/L1FRozEqsZeeLoYxSqwcGOyb3pDZhSTvh8VJi4lodz0Jg3S10k8JakLHQVXI78pTUKT9ql+4rRmPpYxZUxeQwyJ/LIXMPy+YMYQdjPu7x3ecRY1txKQ0g="
 EOF
 source ~/.bashrc
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
@@ -26,12 +26,11 @@ aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
 
 mkdir -p ${efs_mount_point}
 mkdir -p ${efs_mount_point}/ftp ${efs_mount_point}/mysql ${efs_mount_point}/pagina
-setfacl -R -m d:u::rwx,d:g::rwx,d:o::rwx /mnt/efs/pagina
 mount -t efs -o tls ${efs_id}:/ ${efs_mount_point}
 bash -c "echo \"${efs_id}:/ ${efs_mount_point} efs defaults,_netdev 0 0\" >> /etc/fstab"
 chmod -R 777 /mnt/efs
 
-kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
+
 yum install -y openssh-server
 systemctl enable sshd
 systemctl start sshd
@@ -39,7 +38,7 @@ systemctl start sshd
 # ────────────────────────────────────────────────────────────────────
 # Sincronización automática con S3 cada 6 horas
 # ────────────────────────────────────────────────────────────────────
-
+kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.7"
 # Crear el script de sync
 cat << 'SYNC' > /usr/local/bin/efs-to-s3.sh
 #!/bin/bash
