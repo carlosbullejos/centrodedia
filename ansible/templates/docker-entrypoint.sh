@@ -14,7 +14,7 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 USE \`${MYSQL_DATABASE}\`;
 
 INSERT INTO users (nombre, email, password, ftp_password, rol)
-SELECT 'admin', '${ADMIN_EMAIL}', '${ADMIN_HASH}', '${ADMIN_HASH}', 'admin'
+SELECT 'admin', 'admin@centrodiabullejos.es', '${ADMIN_HASH}', '${ADMIN_HASH}', 'admin'
 FROM DUAL
 WHERE NOT EXISTS (
   SELECT 1 FROM users WHERE email='${ADMIN_EMAIL}'
