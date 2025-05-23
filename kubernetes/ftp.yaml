@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: ftp-server
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: ftp
