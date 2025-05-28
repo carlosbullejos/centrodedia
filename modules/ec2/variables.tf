@@ -26,3 +26,8 @@ variable "ssh_key_name" {
   description = "Par SSH para la instancia EC2"
   type        = string
 }
+variable "git_token" {
+  description = "Token de GitHub para clonar el repositorio privado"
+  type        = string
+  sensitive   = true
+}
