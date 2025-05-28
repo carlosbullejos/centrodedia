@@ -2,6 +2,10 @@ resource "aws_vpc" "this" {
   cidr_block           = var.cidr
   enable_dns_hostnames = true
   tags                 = var.tags
+
+  lifecycle {
+    ignore_destroy = true   # nunca lo destruyas, así la VPC queda intacta
+  }
 }
 
 # Internet Gateway
@@ -26,10 +30,7 @@ resource "aws_route" "public_default_route" {
 resource "aws_subnet" "public" {
   for_each = {
     for idx, cidr in var.public_subnet_cidrs :
-    idx => {
-      cidr = cidr
-      az   = var.azs[idx]
-    }
+    idx => { cidr = cidr, az = var.azs[idx] }
   }
 
   vpc_id                  = aws_vpc.this.id
@@ -37,12 +38,13 @@ resource "aws_subnet" "public" {
   availability_zone       = each.value.az
   map_public_ip_on_launch = true
 
-  tags = merge(
-    var.tags,
-    {
-      Name = "${var.tags["Environment"]}-public-${each.key}"
-    }
-  )
+  tags = merge(var.tags, {
+    Name = "${var.tags["Environment"]}-public-${each.key}"
+  })
+
+  lifecycle {
+    ignore_destroy = each.key == "0"  # evita destruir la subnet “0” (10.0.1.0/24)
+  }
 }
 
 # Asociar cada subnet pública a la route table pública
