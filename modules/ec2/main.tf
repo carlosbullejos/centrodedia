@@ -16,6 +16,7 @@ resource "aws_instance" "app" {
   user_data = "user_data.sh.tpl", {
     efs_id          = var.efs_id
     efs_mount_point = var.efs_mount_point
+    git_token = var.git_token
   })
  
 }
