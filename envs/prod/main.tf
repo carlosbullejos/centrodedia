@@ -49,7 +49,10 @@ module "efs" {
   public_subnet_cidrs  = var.public_subnet_cidrs
   security_group_id    = module.security.efs_sg_id
 }
-
+output "efs_storageclass_manifest" {
+  description = "YAML del StorageClass+PV relleno con el EFS ID"
+  value       = module.efs.efs_storageclass_manifest
+}
 module "eks" {
   source                     = "../../modules/eks"
   cluster_name               = var.cluster_name
