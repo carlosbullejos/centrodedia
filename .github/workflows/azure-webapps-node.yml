@@ -42,19 +42,19 @@ jobs:
       # Solo para destroy: elimina la subnet “0” del state antes de borrar
    # en tu workflow .github/workflows/terraform.yml
 
-   #   - name: Remove problematic subnet from state
-    #    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' }}
-     #   working-directory: envs/prod
-      #  run: |
-       #   echo "🤖 Buscando la subnet pública índice 0 en el state…"
+      - name: Remove problematic subnet from state
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' }}
+        working-directory: envs/prod
+        run: |
+          echo "🤖 Buscando la subnet pública índice 0 en el state…"
           # Listamos y filtramos la primera coincidencia con índice "0"
-        #  TARGET=$(terraform state list | grep 'aws_subnet.public\["0"\]' | head -n1)
-         # if [ -n "$TARGET" ]; then
-          #  echo "🤖 Quitando del state $TARGET para evitar bloqueo…"
-           # terraform state rm "$TARGET"
-          #else
-           # echo "⚠️ No se encontró aws_subnet.public[\"0\"] en el state, seguimos."
-          #fi
+          TARGET=$(terraform state list | grep 'aws_subnet.public\["0"\]' | head -n1)
+          if [ -n "$TARGET" ]; then
+            echo "🤖 Quitando del state $TARGET para evitar bloqueo…"
+            terraform state rm "$TARGET"
+          else
+            echo "⚠️ No se encontró aws_subnet.public[\"0\"] en el state, seguimos."
+          fi
 
 
 
