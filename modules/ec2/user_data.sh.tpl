@@ -30,7 +30,7 @@ chown root:root /usr/bin/kubectl
 
 echo "Actualizando kubeconfig..."
 aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
-sleep 2 # Pequeña pausa
+
 
 echo "Configurando EFS..."
 mkdir -p /mnt/efs
@@ -40,7 +40,7 @@ bash -c "echo \"${efs_id}:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
 
 
 # dentro de tu user_data, en lugar de git clone directa:
-TOKEN=${var.git_token}
+TOKEN=${git_token}
 REPO="github.com/carlosbullejos/centrodedia.git"
 BRANCH="kubernetes"
 TARGET_DIR="/mnt/efs/"
