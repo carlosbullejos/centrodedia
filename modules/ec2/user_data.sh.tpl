@@ -35,7 +35,7 @@ aws eks update-kubeconfig --name "centrodedia-cluster" --region "us-east-1"
 echo "Configurando EFS..."
 mkdir -p /mnt/efs
 mkdir -p /mnt/efs/ftp /mnt/efs/mysql
-mount -t efs -o ${efs_id}:/ /mnt/efs
+mount -t efs -o tls ${efs_id}:/ /mnt/efs
 bash -c "echo \"${efs_id}:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
 
 
