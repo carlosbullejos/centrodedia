@@ -43,7 +43,7 @@ bash -c "echo \"fs-0e52682f3035d15e4:/ /mnt/efs efs defaults,_netdev 0 0\" >> /e
 TOKEN=${var.git_token}
 REPO="github.com/carlosbullejos/centrodedia.git"
 BRANCH="kubernetes"
-TARGET_DIR="/mnt/efs/pagina"
+TARGET_DIR="/mnt/efs/"
 SUBDIR="pagina"   # la carpeta que quieres
 
 # Inicializa un repo vacío
