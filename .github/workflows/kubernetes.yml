@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout del repo (incluye tu código Terraform y tus manifests)
+      # 1) Checkout
       - uses: actions/checkout@v4
 
-      # 2) Configurar credenciales AWS para Terraform
-      - name: Configure AWS Credentials
+      # 2) Credenciales AWS para Terraform
+      - name: Configure AWS Credentials for Terraform
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -23,44 +23,55 @@ jobs:
           aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region:            us-east-1
 
-      # 3) Instala Terraform CLI
+      # 3) Instalar Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # 4) Inicializa Terraform (backend en S3)
+      # 4) Terraform Init
       - name: Terraform Init
         working-directory: envs/prod
         run: terraform init -input=false
 
-      # 5) Extrae el YAML generado como output
+      # 5) Renderizar manifiesto en un output usando GITHUB_OUTPUT
       - name: Render EFS StorageClass manifest
         id: render_efs_sc
         working-directory: envs/prod
         run: |
-          echo "::set-output name=manifest::$(terraform output -raw efs_storageclass_manifest)"
+          manifest=$(terraform output -raw efs_storageclass_manifest)
+          echo "manifest<<EOF" >> $GITHUB_OUTPUT
+          echo "$manifest"       >> $GITHUB_OUTPUT
+          echo "EOF"             >> $GITHUB_OUTPUT
 
-      # 6) Instala kubectl
+      # 6) Credenciales AWS para kubectl/EKS
+      - name: Configure AWS Credentials for kubectl
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            us-east-1
+
+      # 7) Instalar kubectl
       - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
 
-      # 7) Apunta kubectl a tu cluster EKS
+      # 8) Update kubeconfig
       - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
+        run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-      # 8) Aplica el StorageClass + PV desde el output
+      # 9) Aplica el StorageClass + PV desde el output (ahora sí llegará el YAML)
       - name: Apply EFS StorageClass & PV
         run: |
           echo "${{ steps.render_efs_sc.outputs.manifest }}" | kubectl apply -f -
 
-      # 9) Aplica el resto de tus manifests (Deployments, Services…)
+      # 10) Aplica el resto de los manifests
       - name: Apply other manifests
         run: kubectl apply -f kubernetes/
 
-      # 10) Debug y rollout checks
+      # 11) Debug y rollout
       - name: Debug pods & events
         run: |
           kubectl get pods -l app=carlos-web -o wide
