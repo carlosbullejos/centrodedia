@@ -49,21 +49,12 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-      # 6) Aplica el StorageClass & PV sacándolo directamente de Terraform
       - name: Apply EFS StorageClass & PV
         working-directory: envs/prod
         run: |
-          # Volcamos solo desde el primer "apiVersion:" hasta el final
           terraform output -raw efs_storageclass_manifest \
-            | sed -n '/^apiVersion:/,$p' \
-            > efs-pv.yaml
-      
-          echo "=== efs-pv.yaml for Kubernetes ==="
-          cat efs-pv.yaml
-          echo "=== End of YAML ==="
-      
-          # Aplica el fichero limpio
-          kubectl apply --validate=false -f efs-pv.yaml
+            | kubectl apply --server-side --validate=false -f -
+
 
 
 
