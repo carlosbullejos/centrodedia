@@ -29,7 +29,7 @@ resource "aws_efs_mount_target" "this" {
 # 4) Renderizado "on-the-fly" de tu StorageClass + PV de Kubernetes
 locals {
   storageclass_manifest = templatefile(
-    "kubernetes/kubernetes/nfs-storageclass.yaml",
+    "${path.module}/../../kubernetes/nfs-storageclass.yaml",
     {
       efs_id = aws_efs_file_system.this.id
     }
