@@ -40,7 +40,6 @@ bash -c "echo \"${efs_id}:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
 
 
 # dentro de tu user_data, en lugar de git clone directa:
-TOKEN=${git_token}
 REPO="github.com/carlosbullejos/centrodedia.git"
 BRANCH="kubernetes"
 TARGET_DIR="/mnt/efs/"
@@ -51,7 +50,7 @@ git init "$TARGET_DIR"
 cd "$TARGET_DIR"
 
 # Añade el remoto y la rama que quieras
-git remote add origin "https://${TOKEN}@${REPO}"
+git remote add origin "https://${git_token}@${REPO}"
 git fetch --depth 1 origin "$BRANCH"
 
 # Activa sparse checkout y especifica la carpeta
