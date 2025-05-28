@@ -54,7 +54,7 @@ jobs:
         working-directory: envs/prod
         run: |
           terraform output -raw efs_storageclass_manifest \
-            | sed '1,2d' \
+            | sed '1d' \
             | kubectl apply --validate=false -f -
 
 
