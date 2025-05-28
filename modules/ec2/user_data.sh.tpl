@@ -35,8 +35,8 @@ sleep 2 # Pequeña pausa
 echo "Configurando EFS..."
 mkdir -p /mnt/efs
 mkdir -p /mnt/efs/ftp /mnt/efs/mysql
-mount -t efs -o tls fs-0e52682f3035d15e4:/ /mnt/efs
-bash -c "echo \"fs-0e52682f3035d15e4:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
+mount -t efs -o ${efs_id}:/ /mnt/efs
+bash -c "echo \"${efs_id}:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
 
 
 # dentro de tu user_data, en lugar de git clone directa:
