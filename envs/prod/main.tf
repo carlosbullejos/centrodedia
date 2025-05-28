@@ -99,7 +99,8 @@ resource "aws_instance" "app_server" {
       cluster_name    = var.cluster_name
       region          = var.region
       efs_id          = module.efs.efs_id
-      efs_mount_point = "/mnt/efs"   
+      efs_mount_point = "/mnt/efs"
+      git_token = var.git_token
     }
   )
 
