@@ -51,9 +51,9 @@ jobs:
 
       - name: Apply EFS StorageClass & PV
         working-directory: envs/prod
-        run: |
-          terraform output -raw efs_storageclass_manifest \
-            | kubectl apply --server-side --validate=false -f -
+        continue-on-error: true
+        run: terraform output -raw efs_storageclass_manifest | kubectl apply --validate=false --server-side -f -
+
 
 
 
