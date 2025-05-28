@@ -1,4 +1,3 @@
-# .github/workflows/deploy-k8s.yaml
 name: Deploy Kubernetes Manifests
 
 on:
