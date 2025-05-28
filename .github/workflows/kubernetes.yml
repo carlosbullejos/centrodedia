@@ -12,29 +12,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1) Checkout del repo (incluye tu código Terraform y tus manifests)
     - uses: actions/checkout@v4
 
-    - uses: aws-actions/configure-aws-credentials@v2
+    # 2) Instala Terraform CLI
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    # 3) Inicializa Terraform (asegúrate de usar el mismo backend donde guardas el state)
+    - name: Terraform Init
+      working-directory: envs/prod
+      run: terraform init -input=false
+
+    # 4) Extrae el YAML generado como output
+    - name: Render EFS StorageClass manifest
+      id: render_efs_sc
+      working-directory: envs/prod
+      run: |
+        # Lee el output y lo expone como variable de paso
+        echo "::set-output name=manifest::$(terraform output -raw efs_storageclass_manifest)"
+
+    # 5) Configura credenciales AWS para kubectl
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region:            us-east-1
 
+    # 6) Instala kubectl
     - name: Install kubectl
       run: |
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
         chmod +x kubectl
         sudo mv kubectl /usr/local/bin/
 
+    # 7) Apunta kubectl a tu cluster EKS
     - name: Update kubeconfig
       run: |
         aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-    - name: Apply Kubernetes manifests
-      run: kubectl apply -f kubernetes/nfs-storageclass.yaml
-    - name: Apply Kubernetes manifests
+    # 8) Aplica el StorageClass + PV directamente desde el output
+    - name: Apply EFS StorageClass & PV
+      run: |
+        echo "${{ steps.render_efs_sc.outputs.manifest }}" | kubectl apply -f -
+
+    # 9) Aplica el resto de tus manifests (Deployments, Services…)
+    - name: Apply other manifests
       run: kubectl apply -f kubernetes/
+
+    # 10) Debug y rollout checks
     - name: Debug pods & events
       run: |
         kubectl get pods -l app=carlos-web -o wide
