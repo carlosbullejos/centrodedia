@@ -52,10 +52,7 @@ jobs:
       # 6) Aplica el StorageClass & PV sacándolo directamente de Terraform
       - name: Apply EFS StorageClass & PV
         working-directory: envs/prod
-        run: |
-          terraform output -raw efs_storageclass_manifest \
-            | sed '1{/^---$/d}' \
-            | kubectl apply --validate=false -f-
+        run: terraform output -raw efs_storageclass_manifest | kubectl apply --validate=false -f -
 
 
 
