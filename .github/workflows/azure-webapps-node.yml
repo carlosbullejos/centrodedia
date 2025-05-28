@@ -1,16 +1,25 @@
-name: Infra + K8s Deploy
+# .github/workflows/terraform.yml
+
+name: Terraform Infra
 
 on:
   push:
     branches: [ main, terraform ]
   workflow_dispatch:
+    inputs:
+      action:
+        description: '¿Qué quieres hacer?'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
+
 jobs:
   terraform:
-    name: Terraform Apply
+    name: Terraform ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' && 'Destroy' || 'Apply' }}
     runs-on: ubuntu-latest
-    outputs:
-      efs_id: ${{ steps.output_efs.outputs.efs_id }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,16 +35,31 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Terraform Init & Apply
+      - name: Terraform Init
+        working-directory: envs/prod
+        run: terraform init -input=false -reconfigure
+
+      # Solo para destroy: elimina la subnet “0” del state antes de borrar
+      - name: Remove problematic subnet from state
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' }}
         working-directory: envs/prod
         run: |
-          terraform init -input=false
-          terraform apply -lock=false -auto-approve
+          echo "🤖 Quitando del state aws_subnet.public[\"0\"] para evitar bloqueo…"
+          terraform state rm aws_subnet.public["0"] || echo "⚠️ Ya estaba ausente en el state, seguimos."
+
+      - name: Terraform Apply
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'apply' }}
+        working-directory: envs/prod
+        run: terraform apply -lock=false -auto-approve
+
+      - name: Terraform Destroy
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' }}
+        working-directory: envs/prod
+        run: terraform destroy -lock=false -auto-approve
 
       - name: Export EFS ID
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'apply' }}
         id: output_efs
         working-directory: envs/prod
         run: |
           echo "::set-output name=efs_id::$(terraform output -raw efs_id)"
-
-  
