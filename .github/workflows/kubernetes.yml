@@ -54,13 +54,10 @@ jobs:
       - name: Apply EFS StorageClass & PV
         working-directory: envs/prod
         run: |
-          # Volcamos el manifiesto en un fichero para inspección
-          terraform output -raw efs_storageclass_manifest > efs-pv.yaml
-          echo "========== MANIFEST =========="
-          cat efs-pv.yaml
-          echo "====== END OF MANIFEST ======="
-          # Aplicamos desactivando validación para saltarnos el error
-          kubectl apply -f efs-pv.yaml --validate=false
+          terraform output -raw efs_storageclass_manifest \
+            | sed '1d' \
+            | kubectl apply --validate=false -f -
+
 
 
 
