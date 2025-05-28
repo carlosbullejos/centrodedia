@@ -53,19 +53,18 @@ jobs:
       - name: Apply EFS StorageClass & PV
         working-directory: envs/prod
         run: |
-          # 1) Genera el YAML en un fichero
-          terraform output -raw efs_storageclass_manifest > efs-pv.yaml
+          # Volcamos solo desde el primer "apiVersion:" hasta el final
+          terraform output -raw efs_storageclass_manifest \
+            | sed -n '/^apiVersion:/,$p' \
+            > efs-pv.yaml
       
-          # 2) Asegura un salto de línea al final (importante para el parser)
-          echo "" >> efs-pv.yaml
-      
-          # 3) Muestra para debug
-          echo "=== efs-pv.yaml ==="
+          echo "=== efs-pv.yaml for Kubernetes ==="
           cat efs-pv.yaml
-          echo "=== end ==="
+          echo "=== End of YAML ==="
       
-          # 4) Aplica todos los documentos desde el fichero
+          # Aplica el fichero limpio
           kubectl apply --validate=false -f efs-pv.yaml
+
 
 
 
