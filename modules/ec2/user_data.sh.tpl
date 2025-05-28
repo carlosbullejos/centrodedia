@@ -12,7 +12,7 @@ unzip -q /tmp/awscliv2.zip -d /tmp
 /tmp/aws/install --install-dir /usr/aws-cli --bin-dir /usr/bin --update
 rm -rf /tmp/awscliv2.zip /tmp/aws
 
-yum install -y amazon-efs-utils jq git
+yum install -y amazon-efs-utils jq git cronie
 
 curl -fsSL "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
      -o /usr/local/bin/kubectl
