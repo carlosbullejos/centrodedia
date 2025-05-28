@@ -112,4 +112,9 @@ variable "aws_account" {
   type        = string
   default     = "799880597301"
 }
+variable "git_token" {
+  description = "Token de GitHub para clonar el repositorio privado"
+  type        = string
+  sensitive   = true
+}
 
