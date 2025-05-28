@@ -3,7 +3,11 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-
+variable "cluster_name" {
+  description = "Nombre del cluster EKS"
+  type        = string
+  default     = "centrodedia-cluster"
+}
 
 variable "my_ip_cidr" {
   description = "Rango CIDR para acceso SSH a EC2"
