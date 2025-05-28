@@ -13,7 +13,13 @@ jobs:
     steps:
     # 1) Checkout del repo (incluye tu código Terraform y tus manifests)
     - uses: actions/checkout@v4
-
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region:            us-east-1
     # 2) Instala Terraform CLI
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
@@ -31,14 +37,6 @@ jobs:
         # Lee el output y lo expone como variable de paso
         echo "::set-output name=manifest::$(terraform output -raw efs_storageclass_manifest)"
 
-    # 5) Configura credenciales AWS para kubectl
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region:            us-east-1
 
     # 6) Instala kubectl
     - name: Install kubectl
