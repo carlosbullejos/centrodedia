@@ -64,14 +64,14 @@ jobs:
 
 
 
-      # 7) Aplica el resto de tus manifests
       - name: Apply other manifests
-        run: kubectl apply -f configmap.yml
-             kubectl apply -f ftp.yml
-             kubectl apply -f ftpsecret.yml
-             kubectl apply -f mysql.yml
-             kubectl apply -f nginx.yml
-             kubectl apply -f php.yml
+        run: |
+          kubectl apply -f kubernetes/configmap.yml
+          kubectl apply -f kubernetes/ftp.yml
+          kubectl apply -f kubernetes/ftpsecret.yml
+          kubectl apply -f kubernetes/mysql.yml
+          kubectl apply -f kubernetes/nginx.yml
+          kubectl apply -f kubernetes/php.yml
 
       # 8) Debug y rollout
       - name: Debug pods & events
