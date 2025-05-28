@@ -37,10 +37,32 @@ mkdir -p /mnt/efs
 mkdir -p /mnt/efs/ftp /mnt/efs/mysql /mnt/efs/pagina
 mount -t efs -o tls fs-0e52682f3035d15e4:/ /mnt/efs
 bash -c "echo \"fs-0e52682f3035d15e4:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
-TOKEN=${var.git_token}
-REPO="github.com/carlosbullejos/centrodedia/tree/kubernetes/pagina"
 
-git clone "https://${TOKEN}@${REPO}" /mnt/efs/pagina
+
+# dentro de tu user_data, en lugar de git clone directa:
+TOKEN=${var.git_token}
+REPO="github.com/carlosbullejos/centrodedia.git"
+BRANCH="kubernetes"
+TARGET_DIR="/mnt/efs/pagina"
+SUBDIR="pagina"   # la carpeta que quieres
+
+# Inicializa un repo vacío
+git init "$TARGET_DIR"
+cd "$TARGET_DIR"
+
+# Añade el remoto y la rama que quieras
+git remote add origin "https://${TOKEN}@${REPO}"
+git fetch --depth 1 origin "$BRANCH"
+
+# Activa sparse checkout y especifica la carpeta
+git config core.sparseCheckout true
+echo "${SUBDIR}/" > .git/info/sparse-checkout
+
+# Trae sólo esa carpeta
+git checkout "$BRANCH"
+
+
+
 chmod -R 777 /mnt/efs/pagina
 echo "Instalando servidor SSH..."
 yum install -y openssh-server
