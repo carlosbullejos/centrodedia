@@ -45,7 +45,8 @@ jobs:
         working-directory: envs/prod
         run: |
           echo "🤖 Quitando del state aws_subnet.public[\"0\"] para evitar bloqueo…"
-          terraform state rm aws_subnet.public["0"] || echo "⚠️ Ya estaba ausente en el state, seguimos."
+          terraform state rm 'aws_subnet.public["0"]' || echo "⚠️ Ya estaba ausente en el state, seguimos."
+
 
       - name: Terraform Apply
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'apply' }}
