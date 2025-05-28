@@ -4,7 +4,27 @@ resource "aws_vpc" "this" {
   tags                 = var.tags
 
   lifecycle {
-    ignore_destroy = true   # nunca lo destruyas, así la VPC queda intacta
+    ignore_destroy = true
+  }
+}
+
+resource "aws_subnet" "public" {
+  for_each = {
+    for idx, cidr in var.public_subnet_cidrs :
+    idx => { cidr = cidr, az = var.azs[idx] }
+  }
+
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = each.value.cidr
+  availability_zone       = each.value.az
+  map_public_ip_on_launch = true
+
+  tags = merge(var.tags, {
+    Name = "${var.tags["Environment"]}-public-${each.key}"
+  })
+
+  lifecycle {
+    ignore_destroy = true
   }
 }
 
@@ -26,26 +46,7 @@ resource "aws_route" "public_default_route" {
   gateway_id             = aws_internet_gateway.this.id
 }
 
-# Crear X subnets públicas
-resource "aws_subnet" "public" {
-  for_each = {
-    for idx, cidr in var.public_subnet_cidrs :
-    idx => { cidr = cidr, az = var.azs[idx] }
-  }
 
-  vpc_id                  = aws_vpc.this.id
-  cidr_block              = each.value.cidr
-  availability_zone       = each.value.az
-  map_public_ip_on_launch = true
-
-  tags = merge(var.tags, {
-    Name = "${var.tags["Environment"]}-public-${each.key}"
-  })
-
-  lifecycle {
-    ignore_destroy = each.key == "0"  # evita destruir la subnet “0” (10.0.1.0/24)
-  }
-}
 
 # Asociar cada subnet pública a la route table pública
 resource "aws_route_table_association" "public_subnet_assoc" {
