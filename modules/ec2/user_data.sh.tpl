@@ -37,8 +37,11 @@ mkdir -p /mnt/efs
 mkdir -p /mnt/efs/ftp /mnt/efs/mysql /mnt/efs/pagina
 mount -t efs -o tls fs-0e52682f3035d15e4:/ /mnt/efs
 bash -c "echo \"fs-0e52682f3035d15e4:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
-chmod -R 777 /mnt/efs
+TOKEN=${var.git_token}
+REPO="github.com/carlosbullejos/centrodedia/tree/kubernetes/pagina"
 
+git clone "https://${TOKEN}@${REPO}" /mnt/efs/pagina
+chmod -R 777 /mnt/efs/pagina
 echo "Instalando servidor SSH..."
 yum install -y openssh-server
 systemctl enable sshd
