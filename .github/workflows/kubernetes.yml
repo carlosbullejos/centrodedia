@@ -55,7 +55,7 @@ jobs:
         run: |
           terraform output -raw efs_storageclass_manifest \
             | sed '1{/^---$/d}' \
-            | kubectl apply --validate=false -f -
+            | kubectl apply --validate=false -f-
 
 
 
