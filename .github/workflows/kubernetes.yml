@@ -1,5 +1,4 @@
 name: Deploy Kubernetes Manifests
-
 on:
   push:
     paths:
@@ -55,8 +54,9 @@ jobs:
         working-directory: envs/prod
         run: |
           terraform output -raw efs_storageclass_manifest \
-            | sed '1d' \
+            | sed '1,2d' \
             | kubectl apply --validate=false -f -
+
 
 
 
