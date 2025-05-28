@@ -53,9 +53,8 @@ jobs:
     # 8) Aplica el StorageClass + PV directamente desde el output
     - name: Apply EFS StorageClass & PV
       working-directory: envs/prod
-      run: |
-        terraform output -raw efs_storageclass_manifest \
-          | kubectl apply -f -
+      run: terraform output -raw efs_storageclass_manifest | kubectl apply -f -
+
 
 
     # 9) Aplica el resto de tus manifests (Deployments, Services…)
