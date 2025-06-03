@@ -1,6 +1,6 @@
 # .github/workflows/terraform.yml
 
-name: Terraform Infra
+name: Lanzamiento y destruccion infraestructura TERRAFORM
 
 on:
   push:
