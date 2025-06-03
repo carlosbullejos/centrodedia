@@ -41,7 +41,7 @@ bash -c "echo \"${efs_id}:/ /mnt/efs efs defaults,_netdev 0 0\" >> /etc/fstab"
 
 mkdir  /mnt/efs/ftp 
 mkdir  /mnt/efs/mysql
-# dentro de tu user_data, en lugar de git clone directa:
+
 
 
 
