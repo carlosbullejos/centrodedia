@@ -4,12 +4,13 @@ sudo su <<'EOF_SUDO_BLOCK'
 
 
 cat << 'EOF' >> ~/.bashrc
-export AWS_ACCESS_KEY_ID="ASIA3UPEZJ42U5E5I2ZX"
-export AWS_SECRET_ACCESS_KEY="X8E22dcWYq43rNsonmtk3alChBAn0TIeeHUi2tYp"
-export AWS_DEFAULT_REGION="us-east-1"
-export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjELL//////////wEaCXVzLXdlc3QtMiJIMEYCIQCG1YBNZP1hfJnR/QLYblC+PUm2mJc3SLXgmVwTZrDBsgIhALQJSfm3E8tATuMXG0KAODOEEa39Us2ThCgJR+p17CAQKrcCCHsQAhoMNzk5ODgwNTk3MzAxIgzP+JWLGEKWqhmw8+YqlAIVykKaKDwTaBnFiQE3fkTg4w9K1W9p4+S/rgg15uB53LPBJ3EnhrN8Ck4dsjxQPKNhnbQpXKEIBMztN7WoGxWeZhTGQJ6ST3LzJ90k8WVBeTc3pofinyb7Xupb+8C3rfEJ2RolyFW1G3wNH86sNCabZ/JnOzSju6CyWtSS6+3SXRz48JJSlSCPBCATQOYYinK5xGYztdBBCiOMFJPE5A1cNEYYPYPaXOVuTbIKAib/Rr56PyZq/pbFY1U/8ndwPh3BD0aDrInqQem71fqp+60RGv/hUQE5rkpMULOM0+Wt9Al6+Q3zkMdJk/Es6ljUrFFhXhXuUtK4ct9gaFwNqDBY/cBCGDhQSByHXzUcAnIGjsjKVmwwhpDdwQY6nAHSzdQk/ugJ/SsB6UOlyWWmYElqYThk31uokGmSFw77jRBOmYltv7q1FnYoAmGDdu1Qe/21zdBEiM2WqLfb74nJCGld505pwOJEyCzb0MSvHHcPWCJYM7QGDb7kIRF4Cp80/qe8WmcGG+bnKGV8l/a10NoW1RNq9yIhRJ0yyqJ5yb6gQN01hZFmPCiLEnLhFi0/O42xagpsD84QH7k="
+export AWS_ACCESS_KEY_ID="${aws_access_key_id}"
+export AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
+export AWS_SESSION_TOKEN="${aws_session_token}"
+export AWS_DEFAULT_REGION="${aws_region}"
 EOF
 source ~/.bashrc
+
 
 echo "Instalando AWS CLI y herramientas..."
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
