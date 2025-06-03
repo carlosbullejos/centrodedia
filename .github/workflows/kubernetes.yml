@@ -1,4 +1,4 @@
-name: Deploy Kubernetes Manifests
+name: Kubernetes infraestructura
 on:
   push:
     paths:
