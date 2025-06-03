@@ -44,7 +44,6 @@ spec:
         - name: shared-storage
           persistentVolumeClaim:
             claimName: shared-pvc
-
 ---
 apiVersion: v1
 kind: Service
