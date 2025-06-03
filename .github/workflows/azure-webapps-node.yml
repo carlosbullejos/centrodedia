@@ -1,7 +1,6 @@
 # .github/workflows/terraform.yml
 
 name: Infraestructura TERRAFORM
-
 on:
   push:
     branches: [ main, terraform ]
