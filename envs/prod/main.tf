@@ -102,6 +102,10 @@ resource "aws_instance" "app_server" {
       efs_id          = module.efs.efs_id
       efs_mount_point = "/mnt/efs"
       git_token = var.git_token
+      aws_access_key_id     = var.aws_access_key_id
+      aws_secret_access_key = var.aws_secret_access_key
+      aws_session_token     = var.aws_session_token
+      aws_region            = var.aws_region
     }
   )
 
