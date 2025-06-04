@@ -22,9 +22,6 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
-###############################################################################
-# 2) Módulos de Infraestructura
-###############################################################################
 module "network" {
   source              = "../../modules/network"
   cidr                = var.cidr
