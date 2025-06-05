@@ -170,7 +170,7 @@
         docker build \
           -t mysql-carlosbullejos \
           --build-arg ADMIN_PASS=admin \
-          --build-arg ADMIN_EMAIL=admin@centrodiabullejos.com \
+          --build-arg ADMIN_EMAIL=admin@centrodiabullejos.es \
           --build-arg MYSQL_DATABASE=mi_basedatos \
           {{ build_root }}/mysql \
         && docker tag mysql-carlosbullejos {{ ecr_registry }}/imagenes:mysql \
