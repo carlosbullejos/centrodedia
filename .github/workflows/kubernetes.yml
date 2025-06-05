@@ -66,12 +66,14 @@ jobs:
 
       - name: Apply other manifests
         run: |
+          kubectl apply -f kubernetes/shared-pvc.yaml
           kubectl apply -f kubernetes/configmap.yml
           kubectl apply -f kubernetes/ftp.yaml
           kubectl apply -f kubernetes/ftpsecret.yaml
           kubectl apply -f kubernetes/mysql.yaml
           kubectl apply -f kubernetes/nginx.yaml
           kubectl apply -f kubernetes/php.yaml
+          
 
       # 8) Debug y rollout
       - name: Debug pods & events
