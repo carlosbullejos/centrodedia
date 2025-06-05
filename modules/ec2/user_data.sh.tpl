@@ -52,14 +52,14 @@ cd "/mnt/efs"
 
 # Añade el remoto y la rama que quieras
 git remote add origin "https://${git_token}@github.com/carlosbullejos/centrodedia.git"
-git fetch --depth 1 origin "kubernetes"
+git fetch --depth 1 origin "pagina"
 
 # Activa sparse checkout y especifica la carpeta
 git config core.sparseCheckout true
 echo "pagina/" > .git/info/sparse-checkout
 
 # Trae sólo esa carpeta
-git checkout "kubernetes"
+git checkout "pagina"
 
 
 
