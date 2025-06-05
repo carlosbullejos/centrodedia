@@ -148,3 +148,16 @@ CREATE TABLE notas (
     FOREIGN KEY (matricula_id) REFERENCES matriculas(id) ON DELETE CASCADE,
     FOREIGN KEY (asignatura_id) REFERENCES asignaturas(id) ON DELETE CASCADE
 );
+
+-- Versión ajustada para mayor similitud con tu estilo (opcional)
+CREATE TABLE solicitudes (
+    id INT NOT NULL AUTO_INCREMENT,
+    alumno_id INT NOT NULL,
+    curso_id INT NOT NULL,
+    estado ENUM('pendiente','aprobada','rechazada') DEFAULT 'pendiente',
+    fecha_solicitud TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_alumno_curso (alumno_id, curso_id),
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+    FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE
+);
