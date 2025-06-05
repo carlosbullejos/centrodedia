@@ -6,6 +6,20 @@ provisioner: efs.csi.aws.com
 reclaimPolicy: Retain
 ---
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-aws
+  volumeName: shared-pv
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: shared-pv
@@ -19,16 +33,3 @@ spec:
   csi:
     driver: efs.csi.aws.com
     volumeHandle: "${efs_id}"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: shared-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: efs-aws
-  volumeName: shared-pv
-  resources:
-    requests:
-      storage: 10Gi
