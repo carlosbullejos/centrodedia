@@ -17,7 +17,7 @@ INSERT INTO users (nombre, email, password, ftp_password, rol)
 SELECT 'admin', 'admin@centrodiabullejos.es', '${ADMIN_HASH}', '${ADMIN_HASH}', 'admin'
 FROM DUAL
 WHERE NOT EXISTS (
-  SELECT 1 FROM users WHERE email='${ADMIN_EMAIL}'
+  SELECT 1 FROM users WHERE email='admin@centrodiabullejos.es'
 );
 EOF
 fi
