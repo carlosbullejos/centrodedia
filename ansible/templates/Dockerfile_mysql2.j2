@@ -29,10 +29,10 @@ RUN ADMIN_HASH="$(cat /tmp/admin_hash)" && \
     echo "USE \`${MYSQL_DATABASE}\`;" > /docker-entrypoint-initdb.d/01-admin-user.sql && \
     echo "" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
     echo "INSERT INTO users (nombre, email, password, ftp_password, rol)" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
-    echo "SELECT 'admin', '${ADMIN_EMAIL}', '${ADMIN_HASH}', '${ADMIN_PASS}', 'admin'" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "SELECT 'admin', 'admin@centrodiabullejos.es', '${ADMIN_HASH}', '${ADMIN_PASS}', 'admin'" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
     echo "FROM DUAL" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
     echo "WHERE NOT EXISTS (" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
-    echo "  SELECT 1 FROM users WHERE email='${ADMIN_EMAIL}'" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
+    echo "  SELECT 1 FROM users WHERE email='admin@centrodiabullejos.es'" >> /docker-entrypoint-initdb.d/01-admin-user.sql && \
     echo ");" >> /docker-entrypoint-initdb.d/01-admin-user.sql
 
 # Usamos ENTRYPOINT/CMD originales de mysql:8.0
