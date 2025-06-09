@@ -44,13 +44,18 @@ jobs:
       # --- NUEVA LÓGICA DE ARTEFACTOS ---
 
       # 8) Generar el manifiesto y guardarlo en un fichero
+     
       - name: Generate EFS Manifest File
         working-directory: envs/prod
         run: |
           echo "📄 Generando el fichero efs-manifest.yaml..."
-          # Guardamos la salida cruda en un fichero.
-          terraform output -raw efs_storageclass_manifest > efs-manifest.yaml
-          echo "✅ Fichero generado."
+          # LÓGICA FINAL: Limpiamos la salida ANTES de guardarla en el fichero.
+          terraform output -raw efs_storageclass_manifest | sed '1d' > efs-manifest.yaml
+          
+          echo "✅ Fichero generado. Mostrando su contenido para depuración:"
+          echo "--------------------------------------------------"
+          cat efs-manifest.yaml
+          echo "--------------------------------------------------"
 
       # 9) Subir el manifiesto como un artefacto
       - name: Upload EFS Manifest Artifact
