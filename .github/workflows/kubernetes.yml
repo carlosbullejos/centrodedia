@@ -56,10 +56,15 @@ jobs:
       - name: Apply EFS StorageClass & PV from Terraform Output
         working-directory: envs/prod
         run: |
-          echo "🔄 Aplicando el StorageClass y PersistentVolume generados por Terraform..."
-          terraform output -json efs_storageclass_manifest | jq -r . | kubectl apply --validate=false -f -
+          echo "🔄 Generando manifiesto y guardándolo en un fichero..."
+          # PASO 1: Guardar la salida JSON en un fichero. Esto evita la contaminación.
+          terraform output -json efs_storageclass_manifest > manifest.json
 
-      # 10) Aplicar el resto de manifiestos
+          echo "Aplicando el manifiesto desde el fichero limpio..."
+          # PASO 2: Leer el fichero limpio, decodificarlo con jq y pasarlo a kubectl.
+          cat manifest.json | jq -r . | kubectl apply --validate=false -f -
+
+      # ... (El resto de los pasos son iguales) ...
       - name: Apply other manifests
         run: |
           kubectl apply -f kubernetes/shared-pvc.yaml
@@ -69,8 +74,6 @@ jobs:
           kubectl apply -f kubernetes/mysql.yaml
           kubectl apply -f kubernetes/nginx.yaml
           kubectl apply -f kubernetes/php.yaml
-
-      # 11-12) Pasos finales (sin cambios)
       - name: Verify rollout
         run: |
           kubectl rollout status deployment/carlos-web-deployment --timeout=5m
