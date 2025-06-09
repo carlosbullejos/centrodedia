@@ -47,7 +47,7 @@ jobs:
 
       # 8) Aplicar el StorageClass estático
       - name: Apply static StorageClass
-        run: kubectl apply -f kubernetes/storageclass.yaml
+        run: kubectl apply -f kubernetes/nfs-storageclass.yaml
 
       # 9) Aplicar el PersistentVolume dinámico desde Terraform
       - name: Apply dynamic PersistentVolume
