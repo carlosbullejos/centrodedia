@@ -27,18 +27,7 @@ resource "aws_efs_mount_target" "this" {
 }
 
 # 4) Renderizado "on-the-fly" de tu StorageClass + PV de Kubernetes
-locals {
-  persistentvolume_manifest = templatefile(
-    "${path.module}/../../kubernetes/persistentvolume-template.yaml",
-    {
-      efs_id = aws_efs_file_system.this.id
-    }
-  )
-}
-
-# Exponemos ÚNICAMENTE el manifiesto del PersistentVolume
-output "efs_persistentvolume_manifest" {
-  description = "YAML del PersistentVolume con el EFS ID inyectado"
-  value       = local.persistentvolume_manifest
-  sensitive   = true
+output "efs_file_system_id" {
+  description = "The ID of the EFS file system."
+  value       = aws_efs_file_system.this.id
 }
