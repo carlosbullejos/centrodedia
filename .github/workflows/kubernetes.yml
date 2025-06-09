@@ -46,21 +46,22 @@ jobs:
       # --- LÓGICA DE APLICACIÓN FINAL Y ROBUSTA ---
 
       # 8) Aplicar el StorageClass estático
-      # NOTA: He visto que en tu workflow lo llamas 'nfs-storageclass.yaml', lo uso aquí.
       - name: Apply static StorageClass
         run: kubectl apply -f kubernetes/nfs-storageclass.yaml
 
-      # 9) Generar y Aplicar el PersistentVolume dinámico (MÉTODO DE FICHERO)
-      - name: Generate and Apply Dynamic PersistentVolume
-        working-directory: envs/prod
+      # 9) Sustituir ID y Aplicar el PersistentVolume dinámico
+      - name: Substitute EFS ID and Apply Dynamic PersistentVolume
         run: |
-          echo "📄 Generando fichero limpio dynamic-pv.yaml..."
-          # PASO 1: Limpiamos la salida y la guardamos en un fichero.
-          terraform output -raw efs_persistentvolume_manifest | sed '1d' | tr -d '\r' > dynamic-pv.yaml
-
-          echo "✅ Fichero generado. Aplicando desde el fichero..."
-          # PASO 2: Aplicamos directamente desde el fichero. Sin tuberías.
-          kubectl apply -f dynamic-pv.yaml
+          echo "📄 Obteniendo el ID del EFS desde Terraform..."
+          # Obtenemos el ID crudo y lo limpiamos de cualquier carácter extra
+          EFS_ID=$(terraform -chdir=envs/prod output -raw efs_file_system_id | tr -d '\r\n')
+          
+          echo "✅ ID obtenido: $EFS_ID"
+          echo "🔄 Sustituyendo placeholder en la plantilla y aplicando..."
+          
+          # Usamos sed para reemplazar el placeholder y lo pasamos a kubectl
+          # Esta tubería es segura porque el YAML de origen está limpio
+          sed "s/EFS_ID_PLACEHOLDER/$EFS_ID/" kubernetes/persistentvolume-template.yaml | kubectl apply -f -
 
       # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
       - name: Apply other manifests
@@ -95,5 +96,7 @@ jobs:
             echo "Esperando la IP externa... (Intento $i de 30)"
             sleep 10
           done
+          echo "❌ Error: No se pudo obtener la IP externa."
+          exit 1
           echo "❌ Error: No se pudo obtener la IP externa."
           exit 1
