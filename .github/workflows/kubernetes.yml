@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # --- PASOS 1 a 7: IGUALES ---
+      # --- PASOS 1 a 8: IGUALES ---
       - uses: actions/checkout@v4
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -42,24 +42,30 @@ jobs:
           sudo mv kubectl /usr/local/bin/
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
-
-      # --- LÓGICA DE APLICACIÓN FINAL Y ROBUSTA ---
-
-      # 8) Aplicar el StorageClass estático
       - name: Apply static StorageClass
         run: kubectl apply -f kubernetes/nfs-storageclass.yaml
 
-      # 9) Sustituir ID y Aplicar el PersistentVolume dinámico
+      # 9) Sustituir ID y Aplicar el PersistentVolume dinámico (VERSIÓN FINAL)
       - name: Substitute EFS ID and Apply Dynamic PersistentVolume
         run: |
-          echo "📄 Obteniendo el ID del EFS desde Terraform..."
-          # Obtenemos el ID crudo. Ahora funcionará porque el output está expuesto.
-          EFS_ID=$(terraform -chdir=envs/prod output -raw efs_file_system_id)
+          echo "📄 Obteniendo y limpiando el ID del EFS desde Terraform..."
           
-          echo "✅ ID obtenido: $EFS_ID"
+          # EXTRACCIÓN QUIRÚRGICA DEL ID:
+          # 1. terraform output: Genera la salida contaminada.
+          # 2. grep 'fs-': Filtra y se queda solo con la línea que contiene el ID.
+          # 3. cut -d':' -f1: Corta la línea y se queda solo con el ID.
+          EFS_ID=$(terraform -chdir=envs/prod output -raw efs_file_system_id | grep 'fs-' | cut -d':' -f1)
+          
+          # Verificación de seguridad
+          if [ -z "$EFS_ID" ]; then
+            echo "❌ Error: No se pudo extraer el EFS ID de la salida de Terraform."
+            exit 1
+          fi
+
+          echo "✅ ID limpio obtenido: $EFS_ID"
           echo "🔄 Sustituyendo placeholder en la plantilla y aplicando..."
           
-          # Usamos '#' como delimitador en sed para máxima robustez.
+          # Este sed ahora es 100% seguro porque $EFS_ID está limpio.
           sed "s#EFS_ID_PLACEHOLDER#$EFS_ID#" kubernetes/persistentvolume-template.yaml | kubectl apply -f -
 
       # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
