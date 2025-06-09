@@ -56,13 +56,8 @@ jobs:
       - name: Apply EFS StorageClass & PV from Terraform Output
         working-directory: envs/prod
         run: |
-          echo "🔄 Generando manifiesto y guardándolo en un fichero..."
-          # PASO 1: Guardar la salida JSON en un fichero. Esto evita la contaminación.
-          terraform output -json efs_storageclass_manifest > manifest.json
-
-          echo "Aplicando el manifiesto desde el fichero limpio..."
-          # PASO 2: Leer el fichero limpio, decodificarlo con jq y pasarlo a kubectl.
-          cat manifest.json | jq -r . | kubectl apply --validate=false -f -
+          echo "🔄 Aplicando el StorageClass y PersistentVolume generados por Terraform..."
+          terraform output -json efs_storageclass_manifest | sed '1d' | jq -r . | kubectl apply --validate=false -f -
 
       # ... (El resto de los pasos son iguales) ...
       - name: Apply other manifests
