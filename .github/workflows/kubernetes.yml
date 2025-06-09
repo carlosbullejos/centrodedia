@@ -49,12 +49,17 @@ jobs:
       - name: Apply static StorageClass
         run: kubectl apply -f kubernetes/nfs-storageclass.yaml
 
-      # 9) Aplicar el PersistentVolume dinámico desde Terraform
+
+ # 9) Aplicar el PersistentVolume dinámico desde Terraform
       - name: Apply dynamic PersistentVolume
         working-directory: envs/prod
         run: |
-          # Usamos el patrón que sabemos que funciona para un solo documento
-          terraform output -raw efs_persistentvolume_manifest | sed '1d' | kubectl apply -f -
+          # LÓGICA FINAL Y CORRECTA:
+          # 1. terraform output: Genera el YAML (con basura y caracteres \r).
+          # 2. sed '1d': Elimina la primera línea de basura.
+          # 3. tr -d '\r': Elimina los caracteres de retorno de carro (Windows).
+          # 4. kubectl apply: Recibe el YAML 100% limpio.
+          terraform output -raw efs_persistentvolume_manifest | sed '1d' | tr -d '\r' | kubectl apply -f -
 
       # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
       - name: Apply other manifests
