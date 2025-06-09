@@ -77,40 +77,45 @@ echo "Comando kubectl apply -k ejecutado."
 echo "Configurando cron..."
 systemctl enable --now crond
 
-# === Aquí modificamos SOLO el bloque de crontab ===
-
-# Crear el script de sync incluyendo las credenciales AWS para cron
-cat << 'SYNC' > /usr/local/bin/efs-to-s3.sh
+cat << SYNC > /usr/local/bin/efs-to-s3.sh
 #!/usr/bin/env bash
 set -euo pipefail
 
 # 1) Credenciales y PATH para cron
-
 export AWS_ACCESS_KEY_ID="${aws_access_key_id}"
 export AWS_SECRET_ACCESS_KEY="${aws_secret_access_key}"
 export AWS_SESSION_TOKEN="${aws_session_token}"
 export AWS_DEFAULT_REGION="${aws_region}"
 
+# Definimos explícitamente el PATH para que cron encuentre el comando 'aws'
+export PATH="/usr/local/bin:/usr/bin:/bin"
+
 # 2) Sincronización
-aws s3 sync /mnt/efs/mysql  s3://carlosbullejos-copiasdeseguridad/backups/mysql/
-aws s3 sync /mnt/efs/ftp    s3://carlosbullejos-copiasdeseguridad/backups/ftp/
-aws s3 sync /mnt/efs/pagina s3://carlosbullejos-copiasdeseguridad/backups/pagina/
+echo "Iniciando sincronización a S3 en \$(date)"
+
+# --- ¡¡¡CAMBIO IMPORTANTE!!! ---
+# Excluimos el fichero .sock de la sincronización de MySQL
+aws s3 sync /mnt/efs/mysql/ s3://carlosbullejos-copiasdeseguridad/backups/mysql/ --exclude "*.sock"
+
+# El resto de las sincronizaciones se quedan igual
+aws s3 sync /mnt/efs/ftp/    s3://carlosbullejos-copiasdeseguridad/backups/ftp/
+aws s3 sync /mnt/efs/pagina/ s3://carlosbullejos-copiasdeseguridad/backups/pagina/
+
+echo "Sincronización finalizada en \$(date)"
 SYNC
 
 chmod +x /usr/local/bin/efs-to-s3.sh
 
-# Añadir al crontab de root sin duplicados
-CRON_JOB="* * * * * /usr/local/bin/efs-to-s3.sh"
-if ! crontab -l 2>/dev/null | grep -Fq "$CRON_JOB"; then
-    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-    echo "Cron job añadido: $CRON_JOB"
+# Añadir al crontab de root con logging
+CRON_JOB="* * * * * /usr/local/bin/efs-to-s3.sh >> /var/log/s3-sync.log 2>&1"
+if ! sudo crontab -l 2>/dev/null | grep -Fq "/usr/local/bin/efs-to-s3.sh"; then
+    (sudo crontab -l 2>/dev/null; echo "$CRON_JOB") | sudo crontab -
+    echo "Cron job añadido para root: $CRON_JOB"
 else
-    echo "Cron job ya existe: $CRON_JOB"
+    echo "Cron job ya existe para root."
 fi
 
 echo "Configuración de Cron finalizada."
-
-echo "Bloque sudo su finalizado."
 EOF_SUDO_BLOCK
 
 echo "Script principal finalizado."
