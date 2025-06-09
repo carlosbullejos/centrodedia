@@ -39,6 +39,6 @@ locals {
 # 5) Exponer el manifiesto como output para tu CI/CD
 output "efs_storageclass_manifest" {
   description = "YAML del StorageClass + PV con el EFS ID inyectado"
-  value       = jsonencode(local.storageclass_manifest)
-  sensitive   = true # Buena práctica para que no se muestre en logs
+  value       = local.storageclass_manifest # <-- ASÍ ESTÁ PERFECTO
+  sensitive   = true
 }
