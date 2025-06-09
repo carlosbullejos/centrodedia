@@ -79,7 +79,6 @@ systemctl enable --now crond
 
 cat << SYNC > /usr/local/bin/efs-to-s3.sh
 #!/usr/bin/env bash
-set -euo pipefail
 
 # 1) Credenciales y PATH para cron
 export AWS_ACCESS_KEY_ID="${aws_access_key_id}"
