@@ -78,12 +78,6 @@ jobs:
           kubectl apply -f kubernetes/mysql.yaml
           kubectl apply -f kubernetes/nginx.yaml
           kubectl apply -f kubernetes/php.yaml
-      - name: Verify rollout
-        run: |
-          kubectl rollout status deployment/carlos-web-deployment --timeout=5m
-          kubectl rollout status deployment/php-fpm-deployment --timeout=3m
-          kubectl rollout status deployment/mysql-deployment --timeout=3m
-          kubectl rollout status deployment/ftp-server --timeout=3m
       - name: Get NGINX Service External IP
         run: |
           SERVICE_NAME="nginx-service"
