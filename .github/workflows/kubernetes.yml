@@ -56,6 +56,13 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
+      - name: DEBUG - Show Terraform Output
+        working-directory: envs/prod
+        run: |
+          echo "--- START OF TERRAFORM OUTPUT ---"
+          terraform output -raw efs_storageclass_manifest
+          echo "--- END OF TERRAFORM OUTPUT ---"
+
       # 8) Aplicar el StorageClass y PV generados por Terraform
       - name: Apply EFS StorageClass & PV from Terraform Output
         working-directory: envs/prod
