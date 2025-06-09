@@ -11,4 +11,5 @@ spec:
   storageClassName: efs-aws
   csi:
     driver: efs.csi.aws.com
-    volumeHandle: "${efs_id}"
+    # ESTE ES EL CAMBIO CLAVE: Un placeholder único
+    volumeHandle: "EFS_ID_PLACEHOLDER"
