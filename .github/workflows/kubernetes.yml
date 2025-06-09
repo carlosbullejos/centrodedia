@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - "kubernetes/**.yaml"
-      - "envs/prod/**.tf" # Buena práctica: triggerear también con cambios de TF
+      - "envs/prod/**.tf"
   workflow_dispatch:
 
 jobs:
@@ -32,29 +32,32 @@ jobs:
         working-directory: envs/prod
         run: terraform init -input=false
 
-      # 5) Instalar kubectl
+      # 5) NUEVO PASO: Terraform Apply
+      - name: Terraform Apply
+        working-directory: envs/prod
+        run: terraform apply -auto-approve -input=false
+
+      # 6) Instalar kubectl
       - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
 
-      # 6) Configurar kubeconfig para EKS
+      # 7) Configurar kubeconfig para EKS
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-      # 7) APLICAR EL STORAGECLASS Y PV GENERADOS POR TERRAFORM
+      # 8) Aplicar el StorageClass y PV generados por Terraform
       - name: Apply EFS StorageClass & PV from Terraform Output
         working-directory: envs/prod
         run: |
           echo "🔄 Aplicando el StorageClass y PersistentVolume generados por Terraform..."
           terraform output -raw efs_storageclass_manifest | kubectl apply -f -
 
-      # 8) APLICAR EL RESTO DE MANIFIESTOS
+      # 9) Aplicar el resto de manifiestos
       - name: Apply other manifests
         run: |
-          # Asegúrate de que los ficheros que definen el SC y el PV no están aquí.
-          # El orden es importante: primero el PVC para que los pods puedan usarlo.
           kubectl apply -f kubernetes/shared-pvc.yaml
           kubectl apply -f kubernetes/configmap.yml
           kubectl apply -f kubernetes/ftp.yaml
@@ -63,7 +66,7 @@ jobs:
           kubectl apply -f kubernetes/nginx.yaml
           kubectl apply -f kubernetes/php.yaml
 
-      # 9) Verificar el despliegue y obtener IP (como antes)
+      # ... (El resto de los pasos de 'Verify rollout' y 'Get NGINX IP' son iguales)
       - name: Verify rollout
         run: |
           kubectl rollout status deployment/carlos-web-deployment --timeout=5m
