@@ -2,7 +2,7 @@ name: Kubernetes infraestructura
 on:
   push:
     paths:
-      - 'kubernetes/**.yaml'
+      - "kubernetes/**.yaml"
   workflow_dispatch:
 
 jobs:
@@ -13,14 +13,14 @@ jobs:
       # 1) Checkout
       - uses: actions/checkout@v4
 
-      # 2) Credenciales AWS para Terraform (backend S3)
-      - name: Configure AWS for Terraform
+      # 2) Configurar credenciales de AWS (solo se necesita una vez por job)
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region:            us-east-1
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
 
       # 3) Instalar Terraform
       - name: Setup Terraform
@@ -31,38 +31,22 @@ jobs:
         working-directory: envs/prod
         run: terraform init -input=false
 
-      # 5) Instala kubectl (necesita AWS creds de nuevo)
-      - name: Configure AWS for kubectl
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region:            us-east-1
-
+      # 5) Instalar kubectl
       - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
 
+      # 6) Configurar kubeconfig para EKS
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
+      # 7) Aplicar manifiestos de Kubernetes
       - name: Apply EFS StorageClass & PV
         working-directory: envs/prod
         continue-on-error: true
         run: terraform output -raw efs_storageclass_manifest | kubectl apply --validate=false --server-side -f -
-
-
-
-
-
-
-
-
-
-
 
       - name: Apply other manifests
         run: |
@@ -73,18 +57,37 @@ jobs:
           kubectl apply -f kubernetes/mysql.yaml
           kubectl apply -f kubernetes/nginx.yaml
           kubectl apply -f kubernetes/php.yaml
-          
 
-      # 8) Debug y rollout
-      - name: Debug pods & events
-        run: |
-          kubectl get pods -l app=carlos-web -o wide
-          kubectl describe pod -l app=carlos-web
-          kubectl logs -l app=carlos-web || true
-
+      # 8) Verificar el despliegue de los Deployments
       - name: Verify rollout
         run: |
           kubectl rollout status deployment/carlos-web-deployment --timeout=5m
           kubectl rollout status deployment/php-fpm-deployment --timeout=3m
           kubectl rollout status deployment/mysql-deployment --timeout=3m
           kubectl rollout status deployment/ftp-server --timeout=3m
+
+      # 9) Obtener la IP externa del servicio NGINX
+      - name: Get NGINX Service External IP
+        run: |
+          SERVICE_NAME="nginx-service"
+          NAMESPACE="default" # No has especificado un namespace, así que 'default' es correcto.
+
+          echo "🔎 Buscando la IP externa para el servicio '$SERVICE_NAME'..."
+
+          for i in {1..30}; do # Intentar durante 5 minutos (30 intentos * 10s)
+            EXTERNAL_IP=$(kubectl get service $SERVICE_NAME --namespace $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            if [ -n "$EXTERNAL_IP" ]; then
+              echo "✅ ¡Encontrado! El endpoint de tu servicio es:"
+              echo "--------------------------------------------------"
+              echo $EXTERNAL_IP
+              echo "--------------------------------------------------"
+              echo "Usa esta URL para configurar el CNAME en tu dominio de IONOS."
+              exit 0
+            fi
+            echo "Esperando la IP externa... (Intento $i de 30)"
+            sleep 10
+          done
+
+          echo "❌ Error: No se pudo obtener la IP externa para el servicio '$SERVICE_NAME' después de 5 minutos."
+          echo "Revisa el estado del servicio con 'kubectl get service $SERVICE_NAME -n $NAMESPACE -o yaml'"
+          exit 1
