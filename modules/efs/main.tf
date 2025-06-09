@@ -28,17 +28,17 @@ resource "aws_efs_mount_target" "this" {
 
 # 4) Renderizado "on-the-fly" de tu StorageClass + PV de Kubernetes
 locals {
-  storageclass_manifest = templatefile(
-    "${path.module}/../../kubernetes/nfs-storageclass.yaml",
+  persistentvolume_manifest = templatefile(
+    "${path.module}/../../kubernetes/persistentvolume-template.yaml",
     {
       efs_id = aws_efs_file_system.this.id
     }
   )
 }
 
-# 5) Exponer el manifiesto como output para tu CI/CD
-output "efs_storageclass_manifest" {
-  description = "YAML del StorageClass + PV con el EFS ID inyectado"
-  value       = local.storageclass_manifest # <-- ASÍ ESTÁ PERFECTO
+# Exponemos ÚNICAMENTE el manifiesto del PersistentVolume
+output "efs_persistentvolume_manifest" {
+  description = "YAML del PersistentVolume con el EFS ID inyectado"
+  value       = local.persistentvolume_manifest
   sensitive   = true
 }
