@@ -61,7 +61,7 @@ jobs:
         working-directory: envs/prod
         run: |
           echo "🔄 Aplicando el StorageClass y PersistentVolume generados por Terraform..."
-          terraform output -raw efs_storageclass_manifest | kubectl apply -f -
+          terraform output -raw efs_storageclass_manifest | kubectl apply --validate=false -f -
 
       # 9) Aplicar el resto de manifiestos
       - name: Apply other manifests
