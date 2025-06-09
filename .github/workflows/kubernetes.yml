@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - "kubernetes/**.yaml"
+      - "envs/prod/**.tf" # Buena práctica: triggerear también con cambios de TF
   workflow_dispatch:
 
 jobs:
@@ -13,7 +14,7 @@ jobs:
       # 1) Checkout
       - uses: actions/checkout@v4
 
-      # 2) Configurar credenciales de AWS (solo se necesita una vez por job)
+      # 2) Configurar credenciales de AWS
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -42,14 +43,18 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-      # 7) Aplicar manifiestos de Kubernetes
-      - name: Apply EFS StorageClass & PV
+      # 7) APLICAR EL STORAGECLASS Y PV GENERADOS POR TERRAFORM
+      - name: Apply EFS StorageClass & PV from Terraform Output
         working-directory: envs/prod
-        continue-on-error: true
-        run: terraform output -raw efs_storageclass_manifest | kubectl apply --validate=false --server-side -f -
+        run: |
+          echo "🔄 Aplicando el StorageClass y PersistentVolume generados por Terraform..."
+          terraform output -raw efs_storageclass_manifest | kubectl apply -f -
 
+      # 8) APLICAR EL RESTO DE MANIFIESTOS
       - name: Apply other manifests
         run: |
+          # Asegúrate de que los ficheros que definen el SC y el PV no están aquí.
+          # El orden es importante: primero el PVC para que los pods puedan usarlo.
           kubectl apply -f kubernetes/shared-pvc.yaml
           kubectl apply -f kubernetes/configmap.yml
           kubectl apply -f kubernetes/ftp.yaml
@@ -58,7 +63,7 @@ jobs:
           kubectl apply -f kubernetes/nginx.yaml
           kubectl apply -f kubernetes/php.yaml
 
-      # 8) Verificar el despliegue de los Deployments
+      # 9) Verificar el despliegue y obtener IP (como antes)
       - name: Verify rollout
         run: |
           kubectl rollout status deployment/carlos-web-deployment --timeout=5m
@@ -66,28 +71,22 @@ jobs:
           kubectl rollout status deployment/mysql-deployment --timeout=3m
           kubectl rollout status deployment/ftp-server --timeout=3m
 
-      # 9) Obtener la IP externa del servicio NGINX
       - name: Get NGINX Service External IP
         run: |
           SERVICE_NAME="nginx-service"
-          NAMESPACE="default" # No has especificado un namespace, así que 'default' es correcto.
-
+          NAMESPACE="default"
           echo "🔎 Buscando la IP externa para el servicio '$SERVICE_NAME'..."
-
-          for i in {1..30}; do # Intentar durante 5 minutos (30 intentos * 10s)
+          for i in {1..30}; do
             EXTERNAL_IP=$(kubectl get service $SERVICE_NAME --namespace $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             if [ -n "$EXTERNAL_IP" ]; then
               echo "✅ ¡Encontrado! El endpoint de tu servicio es:"
               echo "--------------------------------------------------"
               echo $EXTERNAL_IP
               echo "--------------------------------------------------"
-              echo "Usa esta URL para configurar el CNAME en tu dominio de IONOS."
               exit 0
             fi
             echo "Esperando la IP externa... (Intento $i de 30)"
             sleep 10
           done
-
-          echo "❌ Error: No se pudo obtener la IP externa para el servicio '$SERVICE_NAME' después de 5 minutos."
-          echo "Revisa el estado del servicio con 'kubectl get service $SERVICE_NAME -n $NAMESPACE -o yaml'"
+          echo "❌ Error: No se pudo obtener la IP externa."
           exit 1
