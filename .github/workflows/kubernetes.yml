@@ -99,3 +99,136 @@ jobs:
           done
           echo "❌ Error: No se pudo obtener la IP externa."
           exit 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+name: Kubernetes infraestructura
+on:
+  push:
+    paths:
+      - "kubernetes/**.yaml"
+      - "envs/prod/**.tf"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --- PASOS 1 a 7: IGUALES ---
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Init
+        working-directory: envs/prod
+        run: terraform init -input=false
+      - name: Set environment variables for Terraform
+        run: |
+         echo "TF_VAR_aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+         echo "TF_VAR_aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+         echo "TF_VAR_aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+         echo "TF_VAR_aws_region=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+         echo "TF_VAR_git_token=${{ secrets.GIT_TOKEN }}" >> $GITHUB_ENV
+      - name: Terraform Apply
+        working-directory: envs/prod
+        run: terraform apply -auto-approve -input=false
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+
+      # --- NUEVA LÓGICA DE ARTEFACTOS ---
+
+      # 8) Generar el manifiesto y guardarlo en un fichero
+      - name: Generate EFS Manifest File
+        working-directory: envs/prod
+        run: |
+          echo "📄 Generando el fichero efs-manifest.yaml..."
+          # Guardamos la salida cruda en un fichero.
+          terraform output -raw efs_storageclass_manifest > efs-manifest.yaml
+          echo "✅ Fichero generado."
+
+      # 9) Subir el manifiesto como un artefacto
+      - name: Upload EFS Manifest Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: efs-k8s-manifest # Nombre del artefacto
+          path: envs/prod/efs-manifest.yaml # Ruta al fichero a subir
+
+      # 10) Configurar kubeconfig (lo movemos aquí, justo antes de usarlo)
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
+
+      # 11) Bajar el manifiesto en el entorno de kubectl
+      - name: Download EFS Manifest Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: efs-k8s-manifest # Mismo nombre que al subir
+
+      # 12) Aplicar el manifiesto DESDE EL FICHERO LIMPIO
+      - name: Apply EFS StorageClass & PV from Artifact
+        run: |
+          echo "🔄 Aplicando manifiesto desde el fichero descargado efs-manifest.yaml..."
+          # Este comando es simple, limpio y robusto.
+          kubectl apply -f efs-manifest.yaml
+
+      # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
+      - name: Apply other manifests
+        run: |
+          kubectl apply -f kubernetes/shared-pvc.yaml
+          kubectl apply -f kubernetes/configmap.yml
+          kubectl apply -f kubernetes/ftp.yaml
+          kubectl apply -f kubernetes/ftpsecret.yaml
+          kubectl apply -f kubernetes/mysql.yaml
+          kubectl apply -f kubernetes/nginx.yaml
+          kubectl apply -f kubernetes/php.yaml
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/carlos-web-deployment --timeout=5m
+          kubectl rollout status deployment/php-fpm-deployment --timeout=3m
+          kubectl rollout status deployment/mysql-deployment --timeout=3m
+          kubectl rollout status deployment/ftp-server --timeout=3m
+      - name: Get NGINX Service External IP
+        run: |
+          SERVICE_NAME="nginx-service"
+          NAMESPACE="default"
+          echo "🔎 Buscando la IP externa para el servicio '$SERVICE_NAME'..."
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl get service $SERVICE_NAME --namespace $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            if [ -n "$EXTERNAL_IP" ]; then
+              echo "✅ ¡Encontrado! El endpoint de tu servicio es:"
+              echo "--------------------------------------------------"
+              echo $EXTERNAL_IP
+              echo "--------------------------------------------------"
+              exit 0
+            fi
+            echo "Esperando la IP externa... (Intento $i de 30)"
+            sleep 10
+          done
+          echo "❌ Error: No se pudo obtener la IP externa."
+          exit 1
