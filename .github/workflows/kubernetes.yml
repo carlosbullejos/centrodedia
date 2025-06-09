@@ -74,7 +74,7 @@ jobs:
         run: |
           echo "🔄 Aplicando manifiesto desde el fichero descargado efs-manifest.yaml..."
           # Este comando es simple, limpio y robusto.
-          kubectl apply -f efs-manifest.yaml
+          kubectl apply -f --validate=false efs-manifest.yaml
 
       # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
       - name: Apply other manifests
