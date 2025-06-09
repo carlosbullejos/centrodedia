@@ -52,17 +52,17 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-# 9) Aplicar el StorageClass y PV (MÉTODO FINAL Y ROBUSTO)
+# 9) Aplicar el StorageClass y PV
+
       - name: Apply EFS StorageClass & PV from Terraform Output
         working-directory: envs/prod
         run: |
           echo "🔄 Aplicando el StorageClass y PersistentVolume generados por Terraform..."
-          # SECUENCIA CORRECTA:
-          # 1. terraform output -raw: Obtiene el valor crudo (que es una cadena JSON).
-          # 2. tail -n 1: Se queda solo con la última línea para eliminar la basura del runner.
-          # 3. jq -r .: Decodifica la cadena JSON para extraer el YAML original.
-          # 4. kubectl apply: Aplica el YAML limpio.
-          terraform output -raw efs_storageclass_manifest | tail -n 1 | jq -r . | kubectl apply --validate=false -f -
+          # LÓGICA FINAL:
+          # 1. terraform output -raw: Obtiene el YAML multi-línea (con basura al principio).
+          # 2. sed '1d': Elimina la primera línea de basura.
+          # 3. kubectl apply: Recibe el YAML limpio y lo aplica.
+          terraform output -raw efs_storageclass_manifest | sed '1d' | kubectl apply --validate=false -f -
 
       # ... (El resto de los pasos son iguales) ...
       - name: Apply other manifests
