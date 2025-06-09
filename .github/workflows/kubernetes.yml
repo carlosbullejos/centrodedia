@@ -40,46 +40,21 @@ jobs:
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
-
-      # --- NUEVA LÓGICA DE ARTEFACTOS ---
-
-      # 8) Generar el manifiesto y guardarlo en un fichero
-     
-      - name: Generate EFS Manifest File
-        working-directory: envs/prod
-        run: |
-          echo "📄 Generando el fichero efs-manifest.yaml..."
-          # LÓGICA FINAL: Limpiamos la salida ANTES de guardarla en el fichero.
-          terraform output -raw efs_storageclass_manifest | sed '1d' > efs-manifest.yaml
-          
-          echo "✅ Fichero generado. Mostrando su contenido para depuración:"
-          echo "--------------------------------------------------"
-          cat efs-manifest.yaml
-          echo "--------------------------------------------------"
-
-      # 9) Subir el manifiesto como un artefacto
-      - name: Upload EFS Manifest Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: efs-k8s-manifest # Nombre del artefacto
-          path: envs/prod/efs-manifest.yaml # Ruta al fichero a subir
-
-      # 10) Configurar kubeconfig (lo movemos aquí, justo antes de usarlo)
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-      # 11) Bajar el manifiesto en el entorno de kubectl
-      - name: Download EFS Manifest Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: efs-k8s-manifest # Mismo nombre que al subir
+      # --- LÓGICA DE APLICACIÓN SEPARADA Y ROBUSTA ---
 
-      # 12) Aplicar el manifiesto DESDE EL FICHERO LIMPIO
-      - name: Apply EFS StorageClass & PV from Artifact
+      # 8) Aplicar el StorageClass estático
+      - name: Apply static StorageClass
+        run: kubectl apply -f kubernetes/storageclass.yaml
+
+      # 9) Aplicar el PersistentVolume dinámico desde Terraform
+      - name: Apply dynamic PersistentVolume
+        working-directory: envs/prod
         run: |
-          echo "🔄 Aplicando manifiesto desde el fichero descargado efs-manifest.yaml..."
-          # Este comando es simple, limpio y robusto.
-          kubectl apply -f efs-manifest.yaml
+          # Usamos el patrón que sabemos que funciona para un solo documento
+          terraform output -raw efs_persistentvolume_manifest | sed '1d' | kubectl apply -f -
 
       # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
       - name: Apply other manifests
