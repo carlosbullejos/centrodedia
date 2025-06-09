@@ -31,6 +31,14 @@ jobs:
       - name: Terraform Init
         working-directory: envs/prod
         run: terraform init -input=false
+        
+      - name: Set environment variables for Terraform
+        run: |
+          echo "TF_VAR_aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "TF_VAR_aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "TF_VAR_aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_aws_region=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_git_token=${{ secrets.GIT_TOKEN }}" >> $GITHUB_ENV
 
       # 5) NUEVO PASO: Terraform Apply
       - name: Terraform Apply
