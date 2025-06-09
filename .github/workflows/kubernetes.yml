@@ -43,23 +43,24 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
 
-      # --- LÓGICA DE APLICACIÓN SEPARADA Y ROBUSTA ---
+      # --- LÓGICA DE APLICACIÓN FINAL Y ROBUSTA ---
 
       # 8) Aplicar el StorageClass estático
+      # NOTA: He visto que en tu workflow lo llamas 'nfs-storageclass.yaml', lo uso aquí.
       - name: Apply static StorageClass
         run: kubectl apply -f kubernetes/nfs-storageclass.yaml
 
-
- # 9) Aplicar el PersistentVolume dinámico desde Terraform
-      - name: Apply dynamic PersistentVolume
+      # 9) Generar y Aplicar el PersistentVolume dinámico (MÉTODO DE FICHERO)
+      - name: Generate and Apply Dynamic PersistentVolume
         working-directory: envs/prod
         run: |
-          # LÓGICA FINAL Y CORRECTA:
-          # 1. terraform output: Genera el YAML (con basura y caracteres \r).
-          # 2. sed '1d': Elimina la primera línea de basura.
-          # 3. tr -d '\r': Elimina los caracteres de retorno de carro (Windows).
-          # 4. kubectl apply: Recibe el YAML 100% limpio.
-          terraform output -raw efs_persistentvolume_manifest | sed '1d' | tr -d '\r' | kubectl apply -f -
+          echo "📄 Generando fichero limpio dynamic-pv.yaml..."
+          # PASO 1: Limpiamos la salida y la guardamos en un fichero.
+          terraform output -raw efs_persistentvolume_manifest | sed '1d' | tr -d '\r' > dynamic-pv.yaml
+
+          echo "✅ Fichero generado. Aplicando desde el fichero..."
+          # PASO 2: Aplicamos directamente desde el fichero. Sin tuberías.
+          kubectl apply -f dynamic-pv.yaml
 
       # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
       - name: Apply other manifests
