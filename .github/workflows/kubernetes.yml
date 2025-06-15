@@ -1,6 +1,8 @@
 name: Kubernetes infraestructura
 on:
   push:
+    branches:
+      - kubernetes
     paths:
       - "kubernetes/**.yaml"
       - "envs/prod/**.tf"
