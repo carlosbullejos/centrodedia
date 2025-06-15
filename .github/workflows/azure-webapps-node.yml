@@ -20,8 +20,10 @@ jobs:
     name: Terraform ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' && 'Destroy' || 'Apply' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout code (terraform branch)
         uses: actions/checkout@v4
+        with:
+          ref: terraform
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
