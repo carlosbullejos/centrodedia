@@ -1,0 +1,99 @@
+name: Kubernetes infraestructura
+on:
+  push:
+    paths:
+      - "kubernetes/**.yaml"
+      - "envs/prod/**.tf"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --- PASOS 1 a 8: IGUALES ---
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Init
+        working-directory: envs/prod
+        run: terraform init -input=false
+      - name: Set environment variables for Terraform
+        run: |
+         echo "TF_VAR_aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+         echo "TF_VAR_aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+         echo "TF_VAR_aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+         echo "TF_VAR_aws_region=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+         echo "TF_VAR_git_token=${{ secrets.GIT_TOKEN }}" >> $GITHUB_ENV
+      - name: Terraform Apply
+        working-directory: envs/prod
+        run: terraform apply -auto-approve -input=false
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name centrodedia-cluster --region us-east-1
+      - name: Apply static StorageClass
+        run: kubectl apply -f kubernetes/nfs-storageclass.yaml
+
+      # 9) Sustituir ID y Aplicar el PersistentVolume dinámico (VERSIÓN FINAL)
+      - name: Substitute EFS ID and Apply Dynamic PersistentVolume
+        run: |
+          echo "📄 Obteniendo y limpiando el ID del EFS desde Terraform..."
+          
+          # EXTRACCIÓN QUIRÚRGICA DEL ID:
+          # 1. terraform output: Genera la salida contaminada.
+          # 2. grep 'fs-': Filtra y se queda solo con la línea que contiene el ID.
+          # 3. cut -d':' -f1: Corta la línea y se queda solo con el ID.
+          EFS_ID=$(terraform -chdir=envs/prod output -raw efs_file_system_id | grep 'fs-' | cut -d':' -f1)
+          
+          # Verificación de seguridad
+          if [ -z "$EFS_ID" ]; then
+            echo "❌ Error: No se pudo extraer el EFS ID de la salida de Terraform."
+            exit 1
+          fi
+
+          echo "✅ ID limpio obtenido: $EFS_ID"
+          echo "🔄 Sustituyendo placeholder en la plantilla y aplicando..."
+          
+          # Este sed ahora es 100% seguro porque $EFS_ID está limpio.
+          sed "s#EFS_ID_PLACEHOLDER#$EFS_ID#" kubernetes/persistentvolume-template.yaml | kubectl apply -f -
+
+      # --- EL RESTO DEL WORKFLOW SIGUE IGUAL ---
+      - name: Apply other manifests
+        run: |
+          kubectl apply -f kubernetes/shared-pvc.yaml
+          kubectl apply -f kubernetes/configmap.yml
+          kubectl apply -f kubernetes/ftp.yaml
+          kubectl apply -f kubernetes/ftpsecret.yaml
+          kubectl apply -f kubernetes/mysql.yaml
+          kubectl apply -f kubernetes/nginx.yaml
+          kubectl apply -f kubernetes/php.yaml
+      - name: Get NGINX Service External IP
+        run: |
+          SERVICE_NAME="nginx-service"
+          NAMESPACE="default"
+          echo "🔎 Buscando la IP externa para el servicio '$SERVICE_NAME'..."
+          for i in {1..30}; do
+            EXTERNAL_IP=$(kubectl get service $SERVICE_NAME --namespace $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            if [ -n "$EXTERNAL_IP" ]; then
+              echo "✅ ¡Encontrado! El endpoint de tu servicio es:"
+              echo "--------------------------------------------------"
+              echo $EXTERNAL_IP
+              echo "--------------------------------------------------"
+              exit 0
+            fi
+            echo "Esperando la IP externa... (Intento $i de 30)"
+            sleep 10
+          done
+          echo "❌ Error: No se pudo obtener la IP externa."
+          exit 1

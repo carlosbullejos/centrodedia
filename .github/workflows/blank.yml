@@ -1,20 +1,17 @@
-name: Lanzamiento imagenes a ECR
+name: Destroy Infrastructure
 
 on:
-  push:
-    branches:
-      - ansible
   workflow_dispatch:
 
 jobs:
-  deploy:
+  destroy:
+    name: Terraform Destroy
     runs-on: ubuntu-latest
-
     steps:
-      - name:  Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name:  Configure AWS credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -22,18 +19,13 @@ jobs:
           aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region:            ${{ secrets.AWS_REGION }}
 
-      - name:  Install Ansible & AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-          pip3 install --user ansible awscli
-          # Aseguramos que los binarios de pip --user estén en el PATH
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-      - name:  Run Ansible playbook
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN:     ${{ secrets.AWS_SESSION_TOKEN }}
-        run: |
-          ansible-playbook ansible/tasks/main.yml -i localhost, --connection=local
+      - name: Terraform Init
+        working-directory: envs/prod
+        run: terraform init -input=false -reconfigure
+
+      - name: Terraform Destroy
+        working-directory: envs/prod
+        run: terraform destroy -auto-approve -lock=false
