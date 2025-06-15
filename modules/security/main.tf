@@ -35,24 +35,13 @@ resource "aws_security_group_rule" "eks_nodes_nfs_from_efs" {
   source_security_group_id = aws_security_group.efs.id
 }
 
-# EFS: permitir NFS desde EKS nodes
-resource "aws_security_group_rule" "efs_nfs_from_eks" {
-  type                     = "ingress"
-  from_port                = 2049
-  to_port                  = 2049
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.efs.id
-  source_security_group_id = aws_security_group.eks_nodes.id
-}
-
-# EFS: permitir NFS desde EC2 app-server
-resource "aws_security_group_rule" "efs_nfs_from_ec2" {
-  type                     = "ingress"
-  from_port                = 2049
-  to_port                  = 2049
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.efs.id
-  source_security_group_id = aws_security_group.ec2_app.id
+resource "aws_security_group_rule" "efs_ingress_all" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.efs.id
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 # EC2: SSH desde cualquier IP
