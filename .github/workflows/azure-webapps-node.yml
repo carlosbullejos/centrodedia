@@ -1,0 +1,82 @@
+# .github/workflows/terraform.yml
+
+name: Infraestructura TERRAFORM
+on:
+  push:
+    branches: [ main, terraform ]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: '¿Qué quieres hacer?'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
+
+jobs:
+  terraform:
+    name: Terraform ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' && 'Destroy' || 'Apply' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        working-directory: envs/prod
+        run: terraform init -input=false -reconfigure
+
+      # Solo para destroy: elimina la subnet “0” del state antes de borrar
+   # en tu workflow .github/workflows/terraform.yml
+
+     # - name: Remove problematic subnet from state
+      #  if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' }}
+       # working-directory: envs/prod
+        #run: |
+         # echo "🤖 Buscando la subnet pública índice 0 en el state…"
+          # Listamos y filtramos la primera coincidencia con índice "0"
+          #TARGET=$(terraform state list | grep 'aws_subnet.public\["0"\]' | head -n1)
+          #if [ -n "$TARGET" ]; then
+           # echo "🤖 Quitando del state $TARGET para evitar bloqueo…"
+            #terraform state rm "$TARGET"
+          #else
+           # echo "⚠️ No se encontró aws_subnet.public[\"0\"] en el state, seguimos."
+          #fi
+
+      - name: Set environment variables for Terraform
+        run: |
+          echo "TF_VAR_aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "TF_VAR_aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "TF_VAR_aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_aws_region=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "TF_VAR_git_token=${{ secrets.GIT_TOKEN }}" >> $GITHUB_ENV
+
+
+      - name: Terraform Apply
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'apply' }}
+        working-directory: envs/prod
+        run: terraform apply -lock=false -auto-approve
+
+      - name: Terraform Destroy
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy' }}
+        working-directory: envs/prod
+        run: terraform destroy -lock=false -auto-approve
+
+      - name: Export EFS ID
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'apply' }}
+        id: output_efs
+        working-directory: envs/prod
+        run: |
+          echo "::set-output name=efs_id::$(terraform output -raw efs_id)"
