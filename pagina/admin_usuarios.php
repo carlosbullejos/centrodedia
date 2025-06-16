@@ -2,7 +2,7 @@
 session_start();
 require 'login/database.php';
 
-// Asegúrate de que solo los administradores acceden a esta página
+
 if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
     header('Location: index.php');
     exit();
