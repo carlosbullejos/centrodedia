@@ -44,7 +44,7 @@ function redirect_with_msg($msg, $color, $ruta) {
     exit;
 }
 
-// --- BLOQUES DE GESTIÓN (solo si $canManage) ---
+
 
 if ($canManage) {
     // Crear carpeta
