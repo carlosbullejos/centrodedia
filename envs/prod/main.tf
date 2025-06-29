@@ -62,9 +62,6 @@ module "eks" {
   node_security_group_ids         = [module.security.ec2_app_sg_id]
 }
 
-###############################################################################
-# 3) Data Sources
-###############################################################################
 data "aws_eks_cluster_auth" "cluster" {
   name = var.cluster_name
 }
@@ -73,9 +70,7 @@ data "aws_s3_bucket" "backup" {
   bucket = var.backup_bucket_name
 }
 
-###############################################################################
-# 4) EC2 para control y montaje
-###############################################################################
+
 resource "aws_instance" "app_server" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
