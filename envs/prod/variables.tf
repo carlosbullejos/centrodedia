@@ -108,7 +108,7 @@ variable "ssh_key_name" {
 # Cuenta AWS (para extraer el nombre del IAM Role)
 #
 variable "aws_account" {
-  description = "ID de tu cuenta AWS (ej. 123456789012)"
+  description = "ID de cuenta AWS"
   type        = string
   default     = "799880597301"
 }
