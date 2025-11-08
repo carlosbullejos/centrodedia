@@ -85,3 +85,269 @@ This project demonstrates real-world DevOps practices including:
 ---
 
 ## 🏗️ Architecture
+┌─────────────────────────────────────────────────────┐
+
+│                     AWS Cloud                        │
+
+│  ┌────────────────────────────────────────────────┐ │
+
+│  │              VPC (10.0.0.0/16)                 │ │
+
+│  │  ┌──────────────────────────────────────────┐ │ │
+
+│  │  │         EKS Cluster                       │ │ │
+
+│  │  │  ┌────────┐  ┌────────┐  ┌────────┐     │ │ │
+
+│  │  │  │ Nginx  │  │  PHP   │  │ MySQL  │     │ │ │
+
+│  │  │  │  Pod   │  │  Pod   │  │  Pod   │     │ │ │
+
+│  │  │  └────────┘  └────────┘  └────────┘     │ │ │
+
+│  │  │  ┌────────┐                              │ │ │
+
+│  │  │  │  FTP   │     Persistent Storage       │ │ │
+
+│  │  │  │  Pod   │  ◄──────► EFS                │ │ │
+
+│  │  │  └────────┘                              │ │ │
+
+│  │  └──────────────────────────────────────────┘ │ │
+
+│  │                                                │ │
+
+│  │  ┌──────────┐         ┌──────────┐           │ │
+
+│  │  │   EC2    │ ◄─────► │    S3    │           │ │
+
+│  │  │  Backup  │         │  Backups │           │ │
+
+│  │  └──────────┘         └──────────┘           │ │
+
+│  └────────────────────────────────────────────────┘ │
+
+└─────────────────────────────────────────────────────┘
+
+### Key Components:
+- **EKS**: Managed Kubernetes for container orchestration
+- **EFS**: Shared persistent storage across pods
+- **RDS MySQL**: Production database (or MySQL pod)
+- **S3**: Automated backups and static assets
+- **EC2**: Backup automation and admin tasks
+- **ECR**: Private Docker registry
+
+---
+
+## 🛠️ Tech Stack
+
+### Infrastructure
+- **Cloud Provider**: AWS (EKS, EFS, EC2, S3, VPC, ECR)
+- **IaC**: Terraform 1.5+
+- **Configuration Management**: Ansible
+- **Container Orchestration**: Kubernetes 1.27+
+
+### Application
+- **Backend**: PHP 8.x
+- **Web Server**: Nginx
+- **Database**: MySQL 8.x
+- **FTP**: vsftpd
+
+### DevOps
+- **CI/CD**: GitHub Actions
+- **Containerization**: Docker
+- **Version Control**: Git
+- **Image Registry**: AWS ECR
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+```bash
+# Required tools
+- AWS CLI
+- Terraform >= 1.5
+- kubectl
+- Docker
+- Git
+
+
+Installation
+
+1. Clone the repository
+
+  git clone https://github.com/carlosbullejos/centrodedia.git
+  cd centrodedia
+
+2. Configure AWS credentials
+
+  aws configure
+
+3. Set up Terraform variables
+
+	cd terraform/envs/prod
+	cp terraform.tfvars.example terraform.tfvars
+	# Edit terraform.tfvars with your values
+
+4. Deploy infrastructure
+
+	terraform init
+	terraform plan
+	terraform apply
+
+5. Configure kubectl
+
+	aws eks update-kubeconfig --name centrodedia-cluster --region eu-west-1
+
+6. Deploy Kubernetes manifests
+
+	kubectl apply -f kubernetes/
+
+7. Access the application
+
+  kubectl get svc nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+
+📖 Detailed installation guide: docs/installation.md
+
+centrodedia/
+├── .github/
+│   └── workflows/          # CI/CD pipelines
+│       ├── terraform.yml   # Infrastructure deployment
+│       ├── build-push.yml  # Docker build & push to ECR
+│       └── deploy-k8s.yml  # Kubernetes deployment
+├── terraform/
+│   ├── modules/            # Reusable Terraform modules
+│   │   ├── network/        # VPC, subnets, security groups
+│   │   ├── eks/            # EKS cluster configuration
+│   │   ├── efs/            # Shared storage
+│   │   └── ec2/            # Backup instance
+│   └── envs/
+│       └── prod/           # Production environment
+├── kubernetes/
+│   ├── nginx.yaml          # Web server deployment
+│   ├── php.yaml            # PHP-FPM deployment
+│   ├── mysql.yaml          # Database deployment
+│   ├── ftp.yaml            # FTP server deployment
+│   └── nfs-storageclass.yaml  # EFS storage class
+├── ansible/
+│   ├── playbooks/          # Ansible playbooks
+│   └── roles/              # Reusable roles
+├── pagina/                 # PHP application code
+│   ├── usuarios/
+│   ├── trabajadores/
+│   ├── alumnos/
+│   ├── cursos/
+│   ├── tareas/
+│   └── inventario/
+└── docs/                   # Documentation
+
+🔄 CI/CD Pipeline
+
+
+Automated deployment pipeline using GitHub Actions:
+
+
+	graph LR
+	    A[Git Push] --> B[Run Tests]
+	    B --> C[Build Docker Images]
+	    C --> D[Push to ECR]
+	    D --> E[Deploy to EKS]
+	    E --> F[Health Checks]
+	    F --> G[Production]
+
+Pipeline Features:
+
+- ✅ Automated Terraform validation
+
+- ✅ Docker image build and push to ECR
+
+- ✅ Kubernetes manifest deployment
+
+- ✅ Automated rollbacks on failure
+
+- ✅ Slack notifications (optional)
+
+
+---
+
+📸 Screenshots
+
+Dashboard
+
+
+
+User Management
+
+
+
+Infrastructure (AWS Console)
+
+
+
+
+---
+
+🗺️ Roadmap
+
+-  Implement Prometheus + Grafana monitoring
+
+-  Add Istio service mesh
+
+-  Implement GitOps with ArgoCD
+
+-  Multi-cluster deployment
+
+-  Mobile app (React Native)
+
+-  Email/SMS notifications
+
+-  Advanced reporting with BI tools
+
+
+---
+
+📄 License
+
+
+This project is part of my academic work for ASIR degree.
+
+
+---
+
+👤 Author
+
+
+José Carlos Bullejos Gómez
+
+
+- GitHub: @carlosbullejos
+
+- LinkedIn: [Your LinkedIn]
+
+- Email: admin@centrodiabullejos.es
+
+
+---
+
+🙏 Acknowledgments
+
+- ASIR program professors
+
+- AWS documentation
+
+- Kubernetes community
+
+- Open source contributors
+
+
+---
+<div align="center">
+
+⭐ Star this repo if you find it useful!
+
+Made with ❤️ and ☕ by Carlos Bullejos
+
+</div>
+```
