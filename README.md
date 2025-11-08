@@ -165,7 +165,6 @@ This project demonstrates real-world DevOps practices including:
 
 ### Prerequisites
 
-```bash
 # Required tools
 - AWS CLI
 - Terraform >= 1.5
@@ -350,4 +349,4 @@ José Carlos Bullejos Gómez
 Made with ❤️ and ☕ by Carlos Bullejos
 
 </div>
-```
+
