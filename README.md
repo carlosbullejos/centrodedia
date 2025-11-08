@@ -209,7 +209,7 @@ Installation
   kubectl get svc nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 
 📖 Detailed installation guide: docs/installation.md
-
+```
 centrodedia/
 ├── .github/
 │   └── workflows/          # CI/CD pipelines
@@ -242,12 +242,12 @@ centrodedia/
 │   └── inventario/
 └── docs/                   # Documentation
 └── docs/                   # Documentation
-
+```
 🔄 CI/CD Pipeline
 
 
 Automated deployment pipeline using GitHub Actions:
-
+```
 graph LR
     A[Git Push] --> B[Run Tests]
     B --> C[Build Docker Images]
@@ -255,7 +255,7 @@ graph LR
     D --> E[Deploy to EKS]
     E --> F[Health Checks]
     F --> G[Production]
-
+```
 Pipeline Features:
 
 - ✅ Automated Terraform validation
