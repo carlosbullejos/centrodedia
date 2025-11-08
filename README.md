@@ -241,6 +241,7 @@ centrodedia/
 │   ├── tareas/
 │   └── inventario/
 └── docs/                   # Documentation
+└── docs/                   # Documentation
 
 🔄 CI/CD Pipeline
 
