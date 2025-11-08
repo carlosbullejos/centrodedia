@@ -247,14 +247,13 @@ centrodedia/
 
 Automated deployment pipeline using GitHub Actions:
 
-
-	graph LR
-	    A[Git Push] --> B[Run Tests]
-	    B --> C[Build Docker Images]
-	    C --> D[Push to ECR]
-	    D --> E[Deploy to EKS]
-	    E --> F[Health Checks]
-	    F --> G[Production]
+graph LR
+    A[Git Push] --> B[Run Tests]
+    B --> C[Build Docker Images]
+    C --> D[Push to ECR]
+    D --> E[Deploy to EKS]
+    E --> F[Health Checks]
+    F --> G[Production]
 
 Pipeline Features:
 
@@ -323,9 +322,9 @@ José Carlos Bullejos Gómez
 
 - GitHub: @carlosbullejos
 
-- LinkedIn: [Your LinkedIn]
+- LinkedIn: https://www.linkedin.com/in/jos%C3%A9-carlos-bullejos-g%C3%B3mez-ba193521b/
 
-- Email: admin@centrodiabullejos.es
+- Email: carlosbullejos1995@gmail.com
 
 
 ---
